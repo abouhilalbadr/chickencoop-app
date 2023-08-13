@@ -1,0 +1,84 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply font-roboto text-black
+}
+
+button {
+  @apply focus:outline-none
+}
+
+.keyboard button {
+  @apply relative flex items-center justify-center text-3xl transition-all duration-500 rounded-md bg-gray text-black active:scale-95 active:duration-[0s] active:bg-main active:text-white
+  ;
+}
+
+.title::after {
+  @apply content-[''] absolute -bottom-2 left-0 w-[25px] h-0.5 rounded-md bg-main transition-all;
+}
+
+.details::after {
+  @apply content-[''] absolute bg-gradient-to-t from-black/90 w-full h-full bottom-0 left-0 rounded-b-xl;
+}
+
+.details * {
+  @apply z-10 relative;
+}
+
+.cart-item::after {
+  @apply content-[''] transition absolute top-0 left-0
+}
+
+.cart-item:hover::after {
+  @apply w-full h-full bg-black/60 rounded-md
+}
+
+.small-modal {
+  @apply w-full lg:w-2/4;
+}
+
+.normal-modal {
+  @apply w-full lg:w-3/4;
+}
+
+/* CSS Loading */
+.loading {
+  width: 25px;
+  height: 25px;
+  border: 2px solid #FFF;
+  border-bottom-color: transparent;
+  border-radius: 50%;
+  display: inline-block;
+  box-sizing: border-box;
+  animation: rotation 1s linear infinite;
+}
+
+.loading.big {
+  @apply border-4 border-main border-b-transparent w-12 h-12
+}
+
+@keyframes rotation {
+  0% {
+      transform: rotate(0deg);
+  }
+  100% {
+      transform: rotate(360deg);
+  }
+}
+
+select:not([size]) {
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg aria-hidden='true' xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 10 6'%3E%3Cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m1 1 4 4 4-4'/%3E%3C/svg%3E");
+  background-position: right 0.75rem center;
+  background-repeat: no-repeat;
+  background-size: 0.75em 0.75em;
+  padding-right: 2.5rem;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+

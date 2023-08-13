@@ -1,0 +1,86 @@
+import { defineStore } from 'pinia'
+import { io } from "socket.io-client";
+
+export const useStore = defineStore('main', {
+  state: () => {
+    return {
+      socket: null,
+      connected: false,
+      user: JSON.parse( localStorage.getItem('user') || null ),
+      type: "caisse",
+      settings: {
+        money: true,
+        percentage: false,
+        printer: {
+          ip: localStorage.getItem('ip') || '',
+          port: localStorage.getItem('port') || ''
+        }
+      },
+      notifications: [],
+      alert: {
+        show: false,
+        status: '',
+        message: '',
+
+      }
+    }
+  },
+  actions: {
+    toggleMoney() {
+      this.settings.money = !this.settings.money
+    },
+    togglePercent() {
+      this.settings.percentage = !this.settings.percentage
+    },
+    updateType(type) {
+      this.type = type
+    },
+    updatePrinterIp(ip) {
+      this.settings.printer.ip = ip
+      localStorage.setItem('ip', ip)
+    },
+    updatePrinterPort(port) {
+      this.settings.printer.port = port
+      localStorage.setItem('port', port)
+    },
+    setUser(user) {
+      this.user = user
+      localStorage.setItem('user', JSON.stringify(user))
+      this.socket = io('https://caisseapi.chicken-coop.cyou', {
+        reconnectionDelayMax: 10000,
+        auth: {
+          token: user.accessToken
+        }
+      })
+      this.socket.on("connect", () => {
+        this.connected = true;
+      });
+
+      this.socket.on('order:update', (order) => {
+        if (order.status === 'TERMINEE') {
+          this.notifications.push(order)
+          this.alert.show = true
+          this.alert.status = 'success'
+          this.alert.message = `La commande N&#186; ${order.number} est prête`
+          setTimeout(() => {
+            this.alert = {
+              show: false,
+              status: '',
+              message: '',
+            }
+          }, 3000);
+        }
+      })
+    },
+    removeNotification(i) {
+      this.notifications.splice(i, 1);
+    },
+    logout() {
+      this.user = null
+      localStorage.removeItem('user')
+      this.socket.on("disconnect", () => {
+        this.connected = false;
+      });
+    }
+  },
+})
