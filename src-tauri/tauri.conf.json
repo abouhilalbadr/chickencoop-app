@@ -39,6 +39,9 @@
     },
     "updater": {
       "active": true,
+      "windows": {
+        "installMode": "passive"
+      },
       "endpoints": [
         "https://gist.githubusercontent.com/abouhilalbadr/396aad2eeb26b826b1d72efca5eacee8/raw/"
       ],
