@@ -40,7 +40,7 @@
     "updater": {
       "active": true,
       "endpoints": [
-        "https://gist.githubusercontent.com/abouhilalbadr/396aad2eeb26b826b1d72efca5eacee8/raw/ee689bc951bc7a6d6c9b38987812aa59e68d1fb3/chickencoop-updater.json"
+        "https://gist.githubusercontent.com/abouhilalbadr/396aad2eeb26b826b1d72efca5eacee8/raw/"
       ],
       "dialog": true,
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDY0N0FENEVGREIwRkU0MQpSV1JCL3JEOVRxMUhCbmJIK1ZDQmNHUGVKRVlrelFLVU1lSGVIS09YbmJIRFRPM0pReENwemVCbAo="
