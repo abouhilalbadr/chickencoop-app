@@ -182,9 +182,9 @@
     }
   }
 
-  onMounted(() => {
-    connect()
-  })
+  // onMounted(() => {
+  //   connect()
+  // })
 
 
 </script>
