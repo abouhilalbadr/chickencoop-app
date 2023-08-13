@@ -8,7 +8,9 @@ import router from "./router";
 
 const pinia = createPinia()
 
-axios.defaults.baseURL = 'https://caisseapi.chicken-coop.cyou/api/v1'
+const baseUrl = window.navigator.onLine ? import.meta.env.VITE_API_URL : import.meta.env.VITE_API_URL_OFFLINE
+
+axios.defaults.baseURL = baseUrl + '/api/v1'
 
 axios.interceptors.response.use(
   response => response,

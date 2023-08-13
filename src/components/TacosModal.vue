@@ -5,6 +5,11 @@ import Stepper from "./Stepper.vue";
 import Viande from "./Viande.vue";
 import Sauce from "./Sauce.vue";
 import Extra from "./Extra.vue";
+
+import { useStore } from "../store"
+
+const store = useStore()
+
 const props = defineProps(['tacosModal', 'step', 'settings', 'hidePrev', 'hideNext'])
 const emit = defineEmits(['tacosClose', 'changeStep', 'sendData'])
 
@@ -54,7 +59,7 @@ const addViandes = ({viandes}) => {
 const saveData = () => {
   order.value.size = size.value
   order.value.name = "Tacos Composer"
-  order.value.image = "https://caisseapi.chicken-coop.cyou/public/tacos-composez.jpg"
+  order.value.image = store.baseUrl + "/public/tacos-composez.jpg"
   order.value.price = parseInt(make[size.value].price) + plusPrice.value
   order.value.productId = 0
   order.value.mode = 'make-tacos'

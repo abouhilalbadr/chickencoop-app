@@ -4,6 +4,7 @@ import { io } from "socket.io-client";
 export const useStore = defineStore('main', {
   state: () => {
     return {
+      baseUrl: window.navigator.onLine ? import.meta.env.VITE_API_URL : import.meta.env.VITE_API_URL_OFFLINE,
       socket: null,
       connected: false,
       user: JSON.parse( localStorage.getItem('user') || null ),
@@ -46,7 +47,7 @@ export const useStore = defineStore('main', {
     setUser(user) {
       this.user = user
       localStorage.setItem('user', JSON.stringify(user))
-      this.socket = io('https://caisseapi.chicken-coop.cyou', {
+      this.socket = io(this.baseUrl, {
         reconnectionDelayMax: 10000,
         auth: {
           token: user.accessToken
