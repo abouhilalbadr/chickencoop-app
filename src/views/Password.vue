@@ -50,8 +50,8 @@ const returnBack = () => {
 
 <template>
     <div class="flex flex-col justify-center items-center min-h-screen gap-6 p-8">
-        <span v-if="store.type === 'caisse'">4216: code</span>
-        <span v-if="store.type === 'stockage'">3081: code</span>
+        <!-- <span v-if="store.type === 'caisse'">4216: code</span>
+        <span v-if="store.type === 'stockage'">3081: code</span> -->
         <div v-if="store.type" class="flex justify-center items-center">
             <div v-if="store.type === 'stockage'" class="flex flex-col items-center gap-2 border-2 border-main rounded-md w-64 py-4 bg-main">
                 <Cart class="h-32 fill-white" />
