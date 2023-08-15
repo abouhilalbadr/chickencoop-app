@@ -22,11 +22,8 @@
   const type = ref('')
   const numModal = ref(false)
   const loading = ref(false)
-  const showConnection = ref(false)
   // Epson Printer
-  const connectionStatus = ref("");
-  const printer = ref();
-  const ePosDevice = ref()
+  const bipeur = ref(0);
 
   const props = defineProps(['cart'])
   const emit = defineEmits(['cartDel'])
@@ -94,6 +91,7 @@
 
   const sendOrder = async (e) => {
     numModal.value = false
+    bipeur.value = e
     const order = {
       products: JSON.stringify(props.cart),
       status: 'EN_ATTENTE',
@@ -141,11 +139,6 @@
 </script>
 
 <template>
-  <div class="fixed top-0 m-4 z-50 transition-all" :class="showConnection ? 'right-0' : '-right-full'">
-    <div class="bg-white text-black px-12 py-6 shadow-3xl rounded-md">
-      <printer-msg :msg="connectionStatus" />
-    </div>
-  </div>
   <div v-if="loading" class="fixed top-0 left-0 w-full h-full bg-black/80 flex justify-center items-center z-50">
     <span class="loading big"></span>
   </div>
@@ -208,6 +201,17 @@
       :percent="percent"
       :percentTotal="percentTotal"
       :pay="pay"
+      :bipeur="bipeur"
+    />
+    <div class="py-2 my-2 border border-dotted border-black"></div>
+    <print-item
+      :cart="cart"
+      :subTotal="subTotal"
+      :showPromo="showPromo"
+      :percent="percent"
+      :percentTotal="percentTotal"
+      :pay="pay"
+      :bipeur="bipeur"
     />
   </div>
 </template>

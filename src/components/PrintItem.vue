@@ -1,14 +1,15 @@
 <script setup>
-  defineProps(['cart', 'subTotal', 'showPromo', 'percent', 'percentTotal', 'pay'])
+  defineProps(['cart', 'subTotal', 'showPromo', 'percent', 'percentTotal', 'pay', 'bipeur'])
 </script>
 
 <template>
   <div class="flex flex-col justify-center items-center gap-8 p-10">
     <div class="flex flex-col justify-center items-center">
-      <img class="h-32" src="../assets/images/logo.png" alt="Chicken Coop" />
+      <img class="h-32" src="../assets/images/logo-bw.png" alt="Chicken Coop" />
       <h1 class="uppercase text-lg mt-2">Chicken Coop</h1>
       <p class="text-lg">Bab Asfi 2, 24, Marrakech 40170</p>
       <span class="text-lg ">TEL: 06.24.42.74.06</span>
+      <span class="text-lg ">Bipeur: {{ bipeur }}</span>
     </div>
     <div class="border-y my-4 py-4 border-solid border-black w-full">
       <div class="flex justify-center items-center mb-2">
