@@ -170,9 +170,9 @@ onMounted(() => {
     @change-step="stepChanger"
     @tacos-close="closeTacosModal"
   />
-  <main class="grid grid-cols-1 lg:grid-cols-7 gap-6 p-4 w-full min-h-screen">
-    <div class="lg:col-span-5 flex flex-col gap-6">
-      <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-9 gap-3">
+  <main class="grid grid-cols-1 lg:grid-cols-6 gap-6 p-4 w-full min-h-screen">
+    <div class="lg:col-span-4 flex flex-col gap-6">
+      <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
         <food-list
           :food="food"
           @active="setActive"
@@ -180,7 +180,7 @@ onMounted(() => {
 
       </div>
       <div class="h-[550px] overflow-scroll px-2">
-        <div class="pt-2 pb-16 grid grid-cols-2 lg:grid-cols-4 gap-8">
+        <div class="pt-2 pb-16 grid grid-cols-2 lg:grid-cols-3 gap-4">
           <Card
             v-for="(item, i) in allFood[activeFood?.image]"
             :key="i"

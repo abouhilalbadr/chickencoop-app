@@ -10,9 +10,9 @@
       <span class="bg-[red] text-white px-8 py-2 flex items-center justify-center rounded-md">Supprimer</span>
     </div>
     <div class="flex items-center gap-4 flex-1">
-      <img :src="item.image" :alt="item.name" class="h-20 object-cover rounded-md">
+      <img :src="item.image" :alt="item.name" class="h-12 object-cover rounded-md">
       <div class="flex flex-col gap-2">
-        <h2 class="text-lg text-black font-bold font-bree-serif">{{ item.name }} <span v-if="item.size" class="uppercase text-main">({{ item.size }})</span></h2>
+        <h2 class="text-black font-bold font-bree-serif">{{ item.name }} <span v-if="item.size" class="uppercase text-main">({{ item.size }})</span></h2>
         <p class="flex flex-col gap-1 text-black/50 text-xs">
           <span v-if="item.viandes && item.viandes.length > 0">Les viandes: {{ item.viandes.join(',  ') }}</span>
           <span v-if="item.sauces && item.sauces.length > 0">Les sauces: {{ item.sauces.join(', ') }}</span>
@@ -20,6 +20,6 @@
         </p>
       </div>
     </div>
-    <span class="text-3xl font-bree-serif text-main">{{ item.price }} <span class="text-base">DH</span></span>
+    <span class="text-xl font-bree-serif text-main">{{ item.price }} <span class="text-base">DH</span></span>
   </div>
 </template>

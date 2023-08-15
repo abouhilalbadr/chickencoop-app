@@ -57,9 +57,9 @@ const checkSaucesExtras = computed(() => {
 <template>
   <Modal :is-open="foodModal" @close-modal="closeModal">
     <template v-slot:body>
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 py-4 items-center">
+      <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 py-4 items-center">
         <img class="rounded-md" :src="currentFood.image" :alt="currentFood.name">
-        <div class="lg:col-span-2 flex flex-col gap-8 p-4">
+        <div class="lg:col-span-3 flex flex-col gap-8 p-4">
           <h2 class="text-3xl text-black font-bold font-bree-serif">{{ currentFood.name }}</h2>
           <span class="text-5xl font-bree-serif text-main">{{ currentPrice + plusPrice }} <span class="text-lg">DH</span></span>
           <div v-if="checkSaucesExtras && checkSaucesExtras.length > 0" class="flex flex-col gap-4">

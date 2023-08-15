@@ -237,18 +237,18 @@
       />
     </div>
     <div v-if="cart.length > 0" class="mb-4 mx-2 flex items-center justify-between gap-2 border-t border-border pt-4">
-      <span class="text-xl text-black/40 font-bold">Type de commande</span>
+      <span class="text-black/40 font-bold">Type</span>
       <select v-model="type" class="bg-white border text-sm rounded-md focus:outline-none block p-2.5 border-border">
         <option value="" disabled>Veuillez sélectionner un type</option>
         <option v-for="(item, i) in types" :value="item.value" :key="i">{{ item.name }}</option>
       </select>
     </div>
     <div v-if="cart.length > 0" class="mb-4 mx-2 flex items-center justify-between gap-2 border-t border-border pt-4">
-      <span class="text-xl text-black/40 font-bold">Sous total</span>
-      <span class="text-2xl font-bold font-bree-serif text-main">{{ subTotal }} <span class="text-base">DH</span></span>
+      <span class="text-black/40 font-bold">Sous total</span>
+      <span class="text-xl font-bold font-bree-serif text-main">{{ subTotal }} <span class="text-base">DH</span></span>
     </div>
     <div v-if="cart.length > 0" class="mb-4 mx-2 flex items-center justify-between gap-2">
-      <span class="text-xl text-black/40 font-bold">Le client donne</span>
+      <span class="text-black/40 font-bold">Payé</span>
       <input type="text" placeholder="0" class="border border-border rounded-lg p-2 h-10 text-lg text-main" v-model="pay">
     </div>
     <div v-if="showPromo && cart.length > 0" class="mb-2 mx-2 flex items-center justify-between gap-2">

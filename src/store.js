@@ -73,7 +73,11 @@ export const useStore = defineStore('main', {
         }
       })
     },
+    setNotifications(data) {
+      this.notifications = data
+    },
     removeNotification(i) {
+      console.log(i, this.notifications);
       this.notifications.splice(i, 1);
     },
     logout() {

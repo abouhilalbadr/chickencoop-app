@@ -26,7 +26,7 @@ const setActive = (i) => {
     :class="item.active && 'bg-third'"
     @click="setActive(i)"
   >
-    <Tacos v-if="item.image === 'tacos'" class="h-16" />
+    <Tacos v-if="item.image === 'tacos'" class="h-12" />
     <Sandwish v-if="item.image === 'sandwish'" class="h-16" />
     <Burger v-if="item.image === 'burger'" class="h-16" />
     <Salade v-if="item.image === 'salade'" class="h-16" />

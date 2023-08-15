@@ -8,7 +8,7 @@
   },
   "package": {
     "productName": "chickencoop",
-    "version": "1.0.2"
+    "version": "1.0.3"
   },
   "tauri": {
     "allowlist": {
@@ -50,7 +50,7 @@
     },
     "windows": [
       {
-        "fullscreen": false,
+        "fullscreen": true,
         "resizable": true,
         "title": "Chicken Coop",
         "width": 1000,
