@@ -1,7 +1,7 @@
 {
   "name": "app",
   "private": true,
-  "version": "1.0.3",
+  "version": "1.0.4",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -13,10 +13,9 @@
     "@headlessui/vue": "^1.7.14",
     "@tauri-apps/api": "^1.4.0",
     "axios": "^1.4.0",
-    "is-ip": "^5.0.1",
     "pinia": "^2.1.4",
     "socket.io-client": "^4.7.1",
-    "sweetalert2": "^11.7.20",
+    "sweetalert2": "^11.7.23",
     "vue": "^3.2.45",
     "vue-router": "4"
   },

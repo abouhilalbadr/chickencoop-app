@@ -11,11 +11,7 @@ export const useStore = defineStore('main', {
       type: "caisse",
       settings: {
         money: true,
-        percentage: false,
-        printer: {
-          ip: localStorage.getItem('ip') || '',
-          port: localStorage.getItem('port') || ''
-        }
+        percentage: false
       },
       notifications: [],
       alert: {
@@ -35,14 +31,6 @@ export const useStore = defineStore('main', {
     },
     updateType(type) {
       this.type = type
-    },
-    updatePrinterIp(ip) {
-      this.settings.printer.ip = ip
-      localStorage.setItem('ip', ip)
-    },
-    updatePrinterPort(port) {
-      this.settings.printer.port = port
-      localStorage.setItem('port', port)
     },
     setUser(user) {
       this.user = user
