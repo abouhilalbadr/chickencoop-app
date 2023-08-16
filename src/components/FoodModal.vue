@@ -17,9 +17,9 @@ const closeModal = () => {
 
 const addSauces = ({sauces, price, operation}) => {
   order.value.sauces = sauces
-  if (operation === 'plus')
+  if (operation === 'plus' && sauces.length > 2)
     plusPrice.value += parseInt(price)
-  else
+  if (operation === 'minus' && sauces.length >= 2)
     plusPrice.value -= parseInt(price)
 }
 const addExtras = ({extras, price, operation}) => {
