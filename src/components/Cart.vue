@@ -19,7 +19,7 @@
 
   const pay = ref('')
   const percent = ref(0)
-  const type = ref('')
+  const type = ref('SUR_PLACE')
   const numModal = ref(false)
   const loading = ref(false)
   // Epson Printer
