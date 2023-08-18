@@ -10,20 +10,25 @@ import AddButton from "../components/AddButton.vue";
 import FoodList from "../components/FoodList.vue";
 import TacosModal from "../components/TacosModal.vue";
 import FoodModal from "../components/FoodModal.vue";
+import MenuModal from "../components/MenuModal.vue";
 import Panier from "../components/Cart.vue";
 import OrdersNotif from "../components/OrdersNotif.vue"
+import Menu from "../components/icons/food/Menu.vue";
 
 const store = useStore()
 
 const cart = ref([])
 const tacosModal = ref(false)
 const foodModal = ref(false)
+const menuModal = ref(false)
 const step = ref(1)
 const hideNext = ref(false)
 const hidePrev = ref(true)
 const currentFood = ref({})
+const showMenu = ref(false)
 
 const food = ref([])
+const menu = ref([])
 const allFood = ref({})
 
 let settings = reactive([])
@@ -32,6 +37,7 @@ const notifications = computed(() => store.notifications.sort((a, b) => (new Dat
 const activeFood = computed(() => food.value.find((item) => ( item.active )))
 
 const setActive = (i) => {
+  showMenu.value = false
   food.value.map(item => item.active = false)
   food.value[i].active = true
 }
@@ -61,9 +67,17 @@ const closeTacosModal = () => {
 const closeFoodModal = () => {
   foodModal.value = false
 }
+const closeMenuModal = () => {
+  menuModal.value = false
+}
 const setCurrent = (i) => {
   currentFood.value = allFood.value[activeFood.value.image][i]
   foodModal.value = true
+}
+const setCurrentMenu = (i) => {
+  console.log(menu.value[i]);
+  currentFood.value = menu.value[i]
+  menuModal.value = true
 }
 const addToCart = (order) => {
   cart.value.push(order)
@@ -141,6 +155,22 @@ const getSettings = async () => {
     console.log(error);
   }
 }
+const getMenu = async () => {
+  showMenu.value = true
+  try {
+    const { data } = await axios.get('/menus', {
+      headers: {
+        'Authorization': `Bearer ${store.user.accessToken}`
+      }
+    })
+    if (data?.data.length > 0) {
+      menu.value = data?.data;
+    }
+  } catch (error) {
+    console.log(error);
+  }
+}
+
 onMounted(() => {
   store.setUser(store.user)
   getCategories()
@@ -159,6 +189,14 @@ onMounted(() => {
     @send-data="addToCart"
     @food-close="closeFoodModal"
   />
+  <menu-modal
+    v-if="settings.length > 0"
+    :currentFood="currentFood"
+    :settings="settings"
+    :foodModal="menuModal"
+    @send-data="addToCart"
+    @food-close="closeMenuModal"
+  />
   <tacos-modal
     v-if="settings.length > 0"
     :tacosModal="tacosModal"
@@ -175,12 +213,28 @@ onMounted(() => {
       <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
         <food-list
           :food="food"
+          :showMenu="showMenu"
           @active="setActive"
         />
-
+        <button
+          class="border border-border rounded-md px-2 py-2 hover:bg-third hover:border-third transition-all flex flex-col justify-center items-center"
+          :class="showMenu && 'bg-third'"
+          @click="getMenu"
+        >
+          <Menu class="h-16" />
+          Menu
+        </button>
       </div>
       <div class="h-[550px] overflow-scroll px-2">
-        <div class="pt-2 pb-16 grid grid-cols-2 lg:grid-cols-3 gap-4">
+        <div v-if="showMenu" class="pt-2 pb-16 grid grid-cols-2 lg:grid-cols-3 gap-4">
+          <Card
+            v-for="(item, i) in menu"
+            :key="i"
+            :item="item"
+            @click="setCurrentMenu(i)"
+          />
+        </div>
+        <div v-else class="pt-2 pb-16 grid grid-cols-2 lg:grid-cols-3 gap-4">
           <Card
             v-for="(item, i) in allFood[activeFood?.image]"
             :key="i"
