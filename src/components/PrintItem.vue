@@ -1,5 +1,18 @@
 <script setup>
-  defineProps(['cart', 'subTotal', 'showPromo', 'percent', 'percentTotal', 'pay', 'bipeur'])
+  defineProps(['cart', 'subTotal', 'showPromo', 'percent', 'percentTotal', 'pay', 'bipeur', 'type'])
+
+  const types = [
+    { name: 'Sur place', value: 'SUR_PLACE' },
+    { name: 'À emporter', value: 'A_EMPORTER' },
+    { name: 'Livraison', value: 'LIVRAISON' },
+    { name: 'Gratuit', value: 'GRATUIT' },
+  ]
+
+  const getType = (value) => {
+    const type = types.find(item => item.value === value)
+    return type ? type.name : 'Sur place'
+  }
+
 </script>
 
 <template>
@@ -10,6 +23,7 @@
       <p class="text-lg">Bab Asfi 2, 24, Marrakech 40170</p>
       <span class="text-lg ">TEL: 06.24.42.74.06</span>
       <span class="text-lg ">Bipeur: {{ bipeur }}</span>
+      <span class="text-3xl font-bold">{{ getType(type) }}</span>
     </div>
     <div class="border-y my-4 py-4 border-solid border-black w-full">
       <div class="flex justify-center items-center mb-2">

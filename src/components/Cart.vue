@@ -110,7 +110,7 @@
       if (data?.data?.id) {
         percent.value = 0
         pay.value = ''
-        type.value = ''
+        type.value = 'SUR_PLACE'
         emit('cartDel', 'clear')
         loading.value = false
         window.print()
@@ -202,6 +202,7 @@
       :percentTotal="percentTotal"
       :pay="pay"
       :bipeur="bipeur"
+      :type="type"
     />
     <div class="py-2 my-2 border border-dotted border-black"></div>
     <print-item
@@ -212,6 +213,7 @@
       :percentTotal="percentTotal"
       :pay="pay"
       :bipeur="bipeur"
+      :type="type"
     />
   </div>
 </template>
