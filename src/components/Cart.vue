@@ -73,8 +73,9 @@
     }
     pay.value = pay.value + num
   }
-  const removeItem = (i) => {
-    emit('cartDel', i)
+  const removeItem = (prod) => {
+    const firstProduct = props.cart.findIndex(item => item.productId === prod.productId && item.index === prod.index)
+    emit('cartDel', firstProduct)
   }
   const setPromo = (num) => {
     percent.value = num
@@ -136,6 +137,41 @@
     }
   }
 
+  const formatCart = (arr) => {
+    const finalFormat = [];
+    var productsIndexs = [];
+    arr.map(item => {
+      if (item && item.index) {
+        productsIndexs.push(item.index)
+      } else {
+        finalFormat.push(item)
+      }
+    });
+    const counts = {};
+    productsIndexs.map((x) => ( counts[x] = (counts[x] || 0) + 1 ));
+    for (const key in counts) {
+      if (Object.hasOwnProperty.call(counts, key)) {
+        const el = counts[key];
+        const currentProduct = arr.find(item => item.index === parseInt(key))
+        if (currentProduct.productId && currentProduct.productId > 0) {
+          finalFormat.push({
+            name: (el > 1 ? el + "x " : '') + currentProduct.name,
+            image: currentProduct.image,
+            price: el * currentProduct.price,
+            productId: currentProduct.productId,
+            mode: currentProduct.mode,
+            sauces: currentProduct.sauces,
+            index: currentProduct.index,
+            number: currentProduct.number
+          })
+        } else {
+          finalFormat.push(currentProduct)
+        }
+      }
+    }
+    return finalFormat
+  }
+
 </script>
 
 <template>
@@ -153,10 +189,10 @@
     <div class="mt-8 max-h-96 h-96 overflow-scroll">
       <p v-if="cart.length === 0" class="text-black/50 p-2">Pas de commandes</p>
       <cart-item
-        v-for="(item, i) in cart"
+        v-for="(item, i) in formatCart(cart)"
         :key="i"
         :item="item"
-        @click="removeItem(i)"
+        @click="removeItem(item)"
       />
     </div>
     <div v-if="cart.length > 0" class="mb-4 mx-2 flex items-center justify-between gap-2 border-t border-border pt-4">

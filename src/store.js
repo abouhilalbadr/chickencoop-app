@@ -19,10 +19,17 @@ export const useStore = defineStore('main', {
         status: '',
         message: '',
 
-      }
+      },
+      unique: 0
     }
   },
   actions: {
+    setUnique() {
+      this.unique += 1
+    },
+    resetUnique() {
+      this.unique = 0
+    },
     toggleMoney() {
       this.settings.money = !this.settings.money
     },

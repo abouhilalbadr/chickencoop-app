@@ -80,7 +80,13 @@ const setCurrentMenu = (i) => {
   menuModal.value = true
 }
 const addToCart = (order) => {
-  cart.value.push(order)
+  if (order.number) {
+    for (let i = 0; i < order.number; i++) {
+      cart.value.push(order)
+    }
+  } else {
+    cart.value.push(order)
+  }
 }
 const delFromCart = (i) => {
   if (i === 'clear')

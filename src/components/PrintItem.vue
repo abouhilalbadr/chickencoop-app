@@ -13,6 +13,41 @@
     return type ? type.name : 'Sur place'
   }
 
+  const formatCart = (arr) => {
+    const finalFormat = [];
+    var productsIndexs = [];
+    arr.map(item => {
+      if (item && item.index) {
+        productsIndexs.push(item.index)
+      } else {
+        finalFormat.push(item)
+      }
+    });
+    const counts = {};
+    productsIndexs.map((x) => ( counts[x] = (counts[x] || 0) + 1 ));
+    for (const key in counts) {
+      if (Object.hasOwnProperty.call(counts, key)) {
+        const el = counts[key];
+        const currentProduct = arr.find(item => item.index === parseInt(key))
+        if (currentProduct.productId && currentProduct.productId > 0) {
+          finalFormat.push({
+            name: (el > 1 ? el + "x " : '') + currentProduct.name,
+            image: currentProduct.image,
+            price: el * currentProduct.price,
+            productId: currentProduct.productId,
+            mode: currentProduct.mode,
+            sauces: currentProduct.sauces,
+            index: currentProduct.index,
+            number: currentProduct.number
+          })
+        } else {
+          finalFormat.push(currentProduct)
+        }
+      }
+    }
+    return finalFormat
+  }
+
 </script>
 
 <template>
@@ -35,7 +70,7 @@
       </div>
       <div class="border-b mb-2 pb-2 flex flex-col gap-1 px-2">
         <div
-          v-for="(item, i) in cart"
+          v-for="(item, i) in formatCart(cart)"
           :key="i"
           class="flex justify-between gap-2"
         >
