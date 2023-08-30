@@ -195,36 +195,44 @@
         @click="removeItem(item)"
       />
     </div>
-    <div v-if="cart.length > 0" class="mb-4 mx-2 flex items-center justify-between gap-2 border-t border-border pt-4">
+    <div v-if="cart.length > 0" class="mb-4 mx-2 flex flex-col gap-2 border-t border-border pt-4">
       <span class="text-black/40 font-bold">Type</span>
-      <select v-model="type" class="bg-white border text-sm rounded-md focus:outline-none block p-2.5 border-border">
-        <option value="" disabled>Veuillez sélectionner un type</option>
-        <option v-for="(item, i) in types" :value="item.value" :key="i">{{ item.name }}</option>
-      </select>
+      <div class="grid grid-cols-2 gap-2 mb-4">
+        <button
+          v-for="(item, i) in types" :key="i"
+          class="border border-main rounded-md py-4 font-bold"
+          :class="item.value === type ? 'bg-main text-white' : 'text-main bg-white'"
+          @click="type = item.value"
+        >
+          {{ item.name }}
+        </button>
+      </div>
     </div>
-    <div v-if="cart.length > 0" class="mb-4 mx-2 flex items-center justify-between gap-2 border-t border-border pt-4">
-      <span class="text-black/40 font-bold">Sous total</span>
-      <span class="text-xl font-bold font-bree-serif text-main">{{ subTotal }} <span class="text-base">DH</span></span>
+    <div v-if="type !== 'GRATUIT'">
+      <div v-if="cart.length > 0" class="mb-4 mx-2 flex items-center justify-between gap-2 border-t border-border pt-4">
+        <span class="text-black/40 font-bold">Sous total</span>
+        <span class="text-xl font-bold font-bree-serif text-main">{{ subTotal }} <span class="text-base">DH</span></span>
+      </div>
+      <div v-if="cart.length > 0" class="mb-4 mx-2 flex items-center justify-between gap-2">
+        <span class="text-black/40 font-bold">Payé</span>
+        <input type="text" placeholder="0" class="border border-border rounded-lg p-2 h-10 text-lg text-main" v-model="pay">
+      </div>
+      <div v-if="showPromo && cart.length > 0" class="mb-2 mx-2 flex items-center justify-between gap-2">
+        <span class="text-xl text-black/40 font-bold">Promotion <span class="text-main">({{ percent }}%)</span></span>
+        <span class="text-2xl font-bold font-bree-serif text-main"> - {{ parseFloat(percentTotal).toFixed(2) }}<span class="text-base">DH</span></span>
+      </div>
+      <div v-if="cart.length > 0" class="mb-2 mx-2 flex items-center justify-between gap-2">
+        <span class="text-xl text-black/40 font-bold">Echange</span>
+        <span class="text-2xl font-bold font-bree-serif text-main">{{ parseFloat(pay - (subTotal - percentTotal)).toFixed(2) }} <span class="text-base">DH</span></span>
+      </div>
+      <div v-if="cart.length > 0" class="mb-4 mx-2 flex items-center justify-between gap-2 border-t border-border pt-4">
+        <span class="text-xl text-black/40 font-bold">Total</span>
+        <span class="text-2xl font-bold font-bree-serif text-main">{{ parseFloat(subTotal - percentTotal).toFixed(2) }} <span class="text-base">DH</span></span>
+      </div>
+      <money v-if="store.settings.money && cart.length > 0" @reset="resetPay" @add="addNum" />
+      <calc v-if="!store.settings.money && cart.length > 0" @reset="resetPay" @add="setNum" />
+      <percentage v-if="showPromo && cart.length > 0" @reset="resetPromo" @add="setPromo"  />
     </div>
-    <div v-if="cart.length > 0" class="mb-4 mx-2 flex items-center justify-between gap-2">
-      <span class="text-black/40 font-bold">Payé</span>
-      <input type="text" placeholder="0" class="border border-border rounded-lg p-2 h-10 text-lg text-main" v-model="pay">
-    </div>
-    <div v-if="showPromo && cart.length > 0" class="mb-2 mx-2 flex items-center justify-between gap-2">
-      <span class="text-xl text-black/40 font-bold">Promotion <span class="text-main">({{ percent }}%)</span></span>
-      <span class="text-2xl font-bold font-bree-serif text-main"> - {{ parseFloat(percentTotal).toFixed(2) }}<span class="text-base">DH</span></span>
-    </div>
-    <div v-if="cart.length > 0" class="mb-2 mx-2 flex items-center justify-between gap-2">
-      <span class="text-xl text-black/40 font-bold">Echange</span>
-      <span class="text-2xl font-bold font-bree-serif text-main">{{ parseFloat(pay - (subTotal - percentTotal)).toFixed(2) }} <span class="text-base">DH</span></span>
-    </div>
-    <div v-if="cart.length > 0" class="mb-4 mx-2 flex items-center justify-between gap-2 border-t border-border pt-4">
-      <span class="text-xl text-black/40 font-bold">Total</span>
-      <span class="text-2xl font-bold font-bree-serif text-main">{{ parseFloat(subTotal - percentTotal).toFixed(2) }} <span class="text-base">DH</span></span>
-    </div>
-    <money v-if="store.settings.money && cart.length > 0" @reset="resetPay" @add="addNum" />
-    <calc v-if="!store.settings.money && cart.length > 0" @reset="resetPay" @add="setNum" />
-    <percentage v-if="showPromo && cart.length > 0" @reset="resetPromo" @add="setPromo"  />
     <button v-if="cart.length > 0" @click="showStep" class="bg-main px-8 py-4 w-full text-white rounded-md">
       Envoyez au cuisinier
     </button>
