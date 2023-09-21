@@ -104,7 +104,6 @@ const getCategories = async () => {
     if (data?.data.length > 0) {
       const respFood = data.data.map((item, i) => ({ name: item.name, image: item.image, active: (i === 0) ? true : false }))
       data.data.map(item => {
-
         allFood.value[item.image] = item.products
       })
       food.value = respFood
@@ -216,7 +215,7 @@ onMounted(() => {
   />
   <main class="grid grid-cols-1 lg:grid-cols-6 gap-6 p-4 w-full min-h-screen">
     <div class="lg:col-span-4 flex flex-col gap-6">
-      <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
+      <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-9 gap-3">
         <food-list
           :food="food"
           :showMenu="showMenu"
@@ -227,8 +226,8 @@ onMounted(() => {
           :class="showMenu && 'bg-third'"
           @click="getMenu"
         >
-          <Menu class="h-16" />
-          Menu
+          <Menu class="h-8" />
+          <span class="text-xs">Menu</span>
         </button>
       </div>
       <div class="h-[550px] overflow-scroll px-2">

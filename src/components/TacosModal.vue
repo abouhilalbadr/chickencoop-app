@@ -76,42 +76,42 @@ const saveData = () => {
   <Modal :is-open="tacosModal" @close-modal="closeTacosModal">
     <template v-slot:title>Composer votre Tacos</template>
     <template v-slot:body>
-      <div class="max-h-[500px] h-[450px] overflow-y-scroll overflow-x-hidden relative">
+      <div class="max-h-[400px] h-[300px] overflow-y-scroll overflow-x-hidden relative">
         <Stepper :is-showing="step === 1">
           <template v-slot:stepBody>
-            <h4 class="relative text-3xl title text-main">Les Tailles</h4>
-            <div class="flex gap-4 my-12">
+            <h4 class="relative text-2xl title text-main">Les Tailles</h4>
+            <div class="flex gap-4 my-8">
               <button
-                class="w-20 h-12 rounded-md border border-main text-xl"
+                class="w-20 h-10 rounded-md border border-main text-xl"
                 :class="size === 'm' ? 'bg-main text-white' : 'text-main'"
                 @click="addSize('m')"
               >
                 M
               </button>
               <button
-                class="w-20 h-12 rounded-md border border-main text-xl"
+                class="w-20 h-10 rounded-md border border-main text-xl"
                 :class="size === 'l' ? 'bg-main text-white' : 'text-main'"
                 @click="addSize('l')"
               >
                 L
               </button>
               <button
-                class="w-20 h-12 rounded-md border border-main text-xl"
+                class="w-20 h-10 rounded-md border border-main text-xl"
                 :class="size === 'xl' ? 'bg-main text-white' : 'text-main'"
                 @click="addSize('xl')"
               >
                 XL
               </button>
             </div>
-            <h4 class="relative text-3xl title text-main">Les viandes</h4>
+            <h4 class="relative text-2xl title text-main">Les viandes</h4>
             <viande class="my-8" :max="make[size].size " :settings="settings" @save-viandes="addViandes" />
           </template>
         </Stepper>
         <Stepper :is-showing="step === 2">
           <template v-slot:stepBody>
-            <h4 class="relative text-3xl title text-main">Les Sauces</h4>
+            <h4 class="relative text-2xl title text-main">Les Sauces</h4>
             <sauce class="my-8" :settings="settings" @save-sauces="addSauces" />
-            <h4 class="relative text-3xl title text-main">Les Extras</h4>
+            <h4 class="relative text-2xl title text-main">Les Extras</h4>
             <extra class="my-8" :settings="settings" @save-extras="addExtras" />
           </template>
         </Stepper>

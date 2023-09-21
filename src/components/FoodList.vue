@@ -9,6 +9,8 @@ import Naan from "./icons/food/Naan.vue";
 import Wrap from "./icons/food/Wrap.vue";
 import Fries from "./icons/food/Fries.vue";
 import Wings from "./icons/food/Wings.vue";
+import Pizza from "./icons/food/Pizza.vue";
+import Oven from "./icons/food/Oven.vue";
 
 defineProps(['food', 'showMenu'])
 const emit = defineEmits(['active'])
@@ -27,16 +29,18 @@ const setActive = (i) => {
     :class="(!showMenu && item.active) && 'bg-third'"
     @click="setActive(i)"
   >
-    <Tacos v-if="item.image === 'tacos'" class="h-12" />
-    <Sandwish v-if="item.image === 'sandwish'" class="h-16" />
-    <Burger v-if="item.image === 'burger'" class="h-16" />
-    <Salade v-if="item.image === 'salade'" class="h-16" />
-    <Jus v-if="item.image === 'jus'" class="h-16" />
-    <Drink v-if="item.image === 'boissons'" class="h-16" />
-    <Naan v-if="item.image === 'cheese naan'" class="h-16" />
-    <Wrap v-if="item.image === 'wrap'" class="h-16" />
-    <Fries v-if="item.image === 'frites'" class="h-16" />
-    <Wings v-if="item.image === 'wings'" class="h-16" />
-    <span class="capitalize">{{ item.name }}</span>
+    <Tacos v-if="item.image === 'tacos'" class="h-8" />
+    <Sandwish v-if="item.image === 'sandwish'" class="h-8" />
+    <Burger v-if="item.image === 'burger'" class="h-8" />
+    <Salade v-if="item.image === 'salade'" class="h-8" />
+    <Jus v-if="item.image === 'jus'" class="h-8" />
+    <Drink v-if="item.image === 'boissons'" class="h-8" />
+    <Naan v-if="item.image === 'cheese naan'" class="h-8" />
+    <Wrap v-if="item.image === 'wrap'" class="h-8" />
+    <Fries v-if="item.image === 'frites'" class="h-8" />
+    <Wings v-if="item.image === 'wings'" class="h-8" />
+    <Pizza v-if="item.image === 'pizza'" class="h-8" />
+    <Oven v-if="item.image === 'oven'" class="h-8" />
+    <span class="capitalize text-xs">{{ item.name }}</span>
   </button>
 </template>

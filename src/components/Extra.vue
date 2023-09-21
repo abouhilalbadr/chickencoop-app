@@ -22,7 +22,7 @@ const toggleExtra = (extra) => {
     <div class="flex items-center flex-wrap gap-4">
       <button
         v-for="(extra, i) in extras"
-        class="rounded-md border border-main px-10 py-2 font-bold first-letter:capitalize"
+        class="rounded-md border border-main px-6 py-1 font-bold first-letter:capitalize"
         :class="selectedExtra.includes(extra) ? 'bg-main text-white' : 'text-main'"
         @click="toggleExtra(extra)"
       >

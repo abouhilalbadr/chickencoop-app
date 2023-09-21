@@ -23,7 +23,7 @@ const toggleSauce = (sauce) => {
   <div class="flex items-center flex-wrap gap-4">
       <button
         v-for="(sauce, i) in sauces"
-        class="rounded-md border border-main px-10 py-2 font-bold first-letter:capitalize"
+        class="rounded-md border border-main px-6 py-1 font-bold first-letter:capitalize"
         :class="selectedSauce.includes(sauce) ? 'bg-main text-white' : 'text-main'"
         @click="toggleSauce(sauce)"
       >

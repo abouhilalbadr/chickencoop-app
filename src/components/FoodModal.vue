@@ -10,6 +10,7 @@ const store = useStore()
 
 const order = ref({})
 const show = ref('sauce')
+const size = ref('m')
 const plusPrice = ref(0)
 const number = ref(1)
 const props = defineProps(['currentFood', 'foodModal', 'settings'])
@@ -19,7 +20,13 @@ const closeModal = () => {
   emit('foodClose')
   plusPrice.value = 0
 }
-
+const addSize = (s) => {
+  size.value = s
+  plusPrice.value = 0
+  if (s === 'l') {
+    plusPrice.value += (props.currentFood.name === 'Pizza Margherita') ? 7 : 10
+  }
+}
 const addSauces = ({sauces, price, operation}) => {
   order.value.sauces = sauces
   if (operation === 'plus' && sauces.length > 2)
@@ -38,6 +45,9 @@ const saveData = () => {
   store.setUnique()
   order.value.name = props.currentFood.name
   order.value.image = props.currentFood.image
+  if (props.currentFood.categoryId == 14) {
+    order.value.size = size.value
+  }
   order.value.price = currentPrice.value + plusPrice.value
   order.value.productId = props.currentFood.id
   order.value.mode = 'make-normal'
@@ -75,20 +85,39 @@ const checkSaucesExtras = computed(() => {
 <template>
   <Modal :is-open="foodModal" @close-modal="closeModal">
     <template v-slot:body>
-      <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 py-4 items-center">
+      <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 py-4 items-center">
         <img class="rounded-md" :src="currentFood.image" :alt="currentFood.name">
-        <div class="lg:col-span-3 flex flex-col gap-8 p-4">
-          <h2 class="text-3xl text-black font-bold font-bree-serif">{{ currentFood.name }}</h2>
-          <span class="text-5xl font-bree-serif text-main">{{ (currentPrice + plusPrice) * number }} <span class="text-lg">DH</span></span>
+        <div class="lg:col-span-4 flex flex-col gap-6 p-2">
+          <h2 class="text-2xl text-black font-bold font-bree-serif">{{ currentFood.name }}</h2>
+          <span class="text-4xl font-bree-serif text-main">{{ (currentPrice + plusPrice) * number }} <span class="text-lg">DH</span></span>
           <div class="inline-flex">
-            <div class="select-none border border-border py-2 px-4 cursor-pointer bg-border hover:bg-main hover:text-white rounded-l-md" @click="decrease">
+            <div class="select-none border border-border py-1 px-3 cursor-pointer bg-border hover:bg-main hover:text-white rounded-l-md" @click="decrease">
               -
             </div>
 
-            <input class="border border-border p-2 text-center outline-none w-20" type="text" v-model="number" name="quantity" />
+            <input class="border border-border p-1 text-center outline-none w-20" type="text" v-model="number" name="quantity" />
 
-            <div class="select-none border border-border py-2 px-4 cursor-pointer bg-border hover:bg-main hover:text-white rounded-r-md" @click="increase">
+            <div class="select-none border border-border py-1 px-3 cursor-pointer bg-border hover:bg-main hover:text-white rounded-r-md" @click="increase">
               +
+            </div>
+          </div>
+          <div v-if="currentFood.categoryId == 14">
+            <h4 class="relative text-xl title text-main mb-6">Les Tailles</h4>
+            <div class="flex gap-4">
+              <button
+                class="w-20 h-12 rounded-md border border-main text-xl"
+                :class="size === 'm' ? 'bg-main text-white' : 'text-main'"
+                @click="addSize('m')"
+              >
+                M
+              </button>
+              <button
+                class="w-20 h-12 rounded-md border border-main text-xl"
+                :class="size === 'l' ? 'bg-main text-white' : 'text-main'"
+                @click="addSize('l')"
+              >
+                L
+              </button>
             </div>
           </div>
           <div v-if="checkSaucesExtras && checkSaucesExtras.length > 0" class="flex flex-col gap-4">
@@ -120,13 +149,13 @@ const checkSaucesExtras = computed(() => {
       <div class="grid grid-cols-2 gap-8">
         <button
           @click="closeModal"
-          class="border border-main text-main rounded-md h-16 font-bold"
+          class="border border-main text-main rounded-md h-14 font-bold"
           >
           Fermer
         </button>
         <button
           @click="saveData"
-          class="bg-main rounded-md h-16 text-white font-bold disabled:cursor-not-allowed disabled:opacity-50"
+          class="bg-main rounded-md h-14 text-white font-bold disabled:cursor-not-allowed disabled:opacity-50"
         >
           Ajouter au panier
         </button>

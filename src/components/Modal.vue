@@ -44,16 +44,16 @@
             leave-to="opacity-0 scale-95"
           >
             <DialogPanel
-              class="transform overflow-hidden rounded-2xl bg-white p-10 text-left align-middle shadow-xl transition-all"
+              class="transform overflow-hidden rounded-2xl bg-white pt-0 pb-8 px-10 text-left align-middle shadow-xl transition-all"
               :class="size === 'small' ? 'small-modal' : 'normal-modal'"
             >
               <DialogTitle
                 as="h3"
-                class="text-5xl font-bold"
+                class="text-5xl font-bold pt-4"
               >
                 <slot name="title"></slot>
               </DialogTitle>
-              <div class="my-4">
+              <div class="mb-4">
                 <slot name="body"></slot>
               </div>
 
