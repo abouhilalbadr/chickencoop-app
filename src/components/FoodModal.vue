@@ -19,6 +19,7 @@ const currentPrice = computed(() => props.currentFood.price)
 const closeModal = () => {
   emit('foodClose')
   plusPrice.value = 0
+  size.value = 'm'
 }
 const addSize = (s) => {
   size.value = s
@@ -58,6 +59,7 @@ const saveData = () => {
   show.value = 'sauce'
   plusPrice.value = 0
   number.value = 1
+  size.value = 'm'
   order.value = {}
 }
 
