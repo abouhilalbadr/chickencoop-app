@@ -98,7 +98,7 @@
       products: JSON.stringify(props.cart),
       status: 'EN_ATTENTE',
       type: type.value,
-      total: parseFloat((subTotal.value + livraison.value) - percentTotal.value),
+      total: parseFloat((subTotal.value + (livraison.value === -1 ? 0 : livraison.value)) - percentTotal.value),
       number: e,
       invoice: '',
     }
