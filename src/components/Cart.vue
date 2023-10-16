@@ -253,7 +253,7 @@
       Envoyez au cuisinier
     </button>
   </div>
-  <div id="printArea" class="hiddden">
+  <div id="printArea" class="hidden">
     <print-item
       :cart="cart"
       :subTotal="subTotal"
