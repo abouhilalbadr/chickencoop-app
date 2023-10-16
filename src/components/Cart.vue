@@ -22,6 +22,7 @@
   const type = ref('SUR_PLACE')
   const numModal = ref(false)
   const loading = ref(false)
+  const livraison = ref(-1)
   // Epson Printer
   const bipeur = ref(0);
 
@@ -97,7 +98,7 @@
       products: JSON.stringify(props.cart),
       status: 'EN_ATTENTE',
       type: type.value,
-      total: parseFloat(subTotal.value - percentTotal.value),
+      total: parseFloat((subTotal.value + livraison.value) - percentTotal.value),
       number: e,
       invoice: '',
     }
@@ -110,6 +111,7 @@
       })
       if (data?.data?.id) {
         percent.value = 0
+        livraison.value = -1
         pay.value = ''
         type.value = 'SUR_PLACE'
         emit('cartDel', 'clear')
@@ -172,6 +174,11 @@
     return finalFormat
   }
 
+  const changeType = (value) => {
+    type.value = value
+    livraison.value = -1
+  }
+
 </script>
 
 <template>
@@ -202,11 +209,16 @@
           v-for="(item, i) in types" :key="i"
           class="border border-main rounded-md py-4 font-bold"
           :class="item.value === type ? 'bg-main text-white' : 'text-main bg-white'"
-          @click="type = item.value"
+          @click="changeType(item.value)"
         >
           {{ item.name }}
         </button>
       </div>
+    </div>
+    <div v-if="type === 'LIVRAISON'" class="grid grid-cols-2 lg:grid-cols-3 gap-6 mb-6 px-2">
+      <button @click="livraison = 0" class="border border-main rounded-md" :class="livraison === 0 ? 'bg-main text-white' : 'text-main bg-white'">Gratuit</button>
+      <button @click="livraison = 10" class="border border-main text-main rounded-md" :class="livraison === 10 ? 'bg-main text-white' : 'text-main bg-white'">Zone A</button>
+      <button @click="livraison = 20" class="border border-main text-main rounded-md" :class="livraison === 20 ? 'bg-main text-white' : 'text-main bg-white'">Zone B</button>
     </div>
     <div v-if="type !== 'GRATUIT'">
       <div v-if="cart.length > 0" class="mb-4 mx-2 flex items-center justify-between gap-2 border-t border-border pt-4">
@@ -221,13 +233,17 @@
         <span class="text-xl text-black/40 font-bold">Promotion <span class="text-main">({{ percent }}%)</span></span>
         <span class="text-2xl font-bold font-bree-serif text-main"> - {{ parseFloat(percentTotal).toFixed(2) }}<span class="text-base">DH</span></span>
       </div>
+      <div v-if="type === 'LIVRAISON'" class="mb-2 mx-2 flex items-center justify-between gap-2">
+        <span class="text-xl text-black/40 font-bold">Livraison</span>
+        <span class="text-2xl font-bold font-bree-serif text-main">{{ livraison }} <span class="text-base">DH</span></span>
+      </div>
       <div v-if="cart.length > 0" class="mb-2 mx-2 flex items-center justify-between gap-2">
         <span class="text-xl text-black/40 font-bold">Echange</span>
-        <span class="text-2xl font-bold font-bree-serif text-main">{{ parseFloat(pay - (subTotal - percentTotal)).toFixed(2) }} <span class="text-base">DH</span></span>
+        <span class="text-2xl font-bold font-bree-serif text-main">{{ parseFloat(pay - ((subTotal + livraison) - percentTotal)).toFixed(2) }} <span class="text-base">DH</span></span>
       </div>
       <div v-if="cart.length > 0" class="mb-4 mx-2 flex items-center justify-between gap-2 border-t border-border pt-4">
         <span class="text-xl text-black/40 font-bold">Total</span>
-        <span class="text-2xl font-bold font-bree-serif text-main">{{ parseFloat(subTotal - percentTotal).toFixed(2) }} <span class="text-base">DH</span></span>
+        <span class="text-2xl font-bold font-bree-serif text-main">{{ parseFloat((subTotal + livraison) - percentTotal).toFixed(2) }} <span class="text-base">DH</span></span>
       </div>
       <money v-if="store.settings.money && cart.length > 0" @reset="resetPay" @add="addNum" />
       <calc v-if="!store.settings.money && cart.length > 0" @reset="resetPay" @add="setNum" />
@@ -247,6 +263,7 @@
       :pay="pay"
       :bipeur="bipeur"
       :type="type"
+      :livraison="livraison"
     />
     <div class="py-2 my-2 border border-dotted border-black"></div>
     <print-item
@@ -258,6 +275,7 @@
       :pay="pay"
       :bipeur="bipeur"
       :type="type"
+      :livraison="livraison"
     />
   </div>
 </template>

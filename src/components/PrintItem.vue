@@ -1,11 +1,17 @@
 <script setup>
-  defineProps(['cart', 'subTotal', 'showPromo', 'percent', 'percentTotal', 'pay', 'bipeur', 'type'])
+  defineProps(['cart', 'subTotal', 'showPromo', 'percent', 'percentTotal', 'pay', 'bipeur', 'type', 'livraison'])
 
   const types = [
     { name: 'Sur place', value: 'SUR_PLACE' },
     { name: 'À emporter', value: 'A_EMPORTER' },
     { name: 'Livraison', value: 'LIVRAISON' },
     { name: 'Gratuit', value: 'GRATUIT' },
+  ]
+
+  const livraisons = [
+    { name: 'Gratuit', value: 0 },
+    { name: 'Zone A', value: 10 },
+    { name: 'Zone B', value: 20 },
   ]
 
   const getType = (value) => {
@@ -48,6 +54,11 @@
     return finalFormat
   }
 
+  const getLivraison = (value) => {
+    const livraison = livraisons.find(item => item.value === value)
+    return livraison ? livraison.name : 'Gratuit'
+  }
+
 </script>
 
 <template>
@@ -58,7 +69,7 @@
       <p class="text-lg">Bab Asfi 2, 24, Marrakech 40170</p>
       <span class="text-lg ">TEL: 06.24.42.74.06</span>
       <span class="text-lg ">Bipeur: {{ bipeur }}</span>
-      <span class="text-3xl font-bold">{{ getType(type) }}</span>
+      <span class="text-3xl font-bold">{{ getType(type) }} {{ getLivraison(livraison) }}</span>
     </div>
     <div class="border-y my-4 py-4 border-solid border-black w-full">
       <div class="flex justify-center items-center mb-2">
@@ -85,6 +96,10 @@
           <span class="text-xl font-bold">{{ parseFloat(item.price).toFixed(2) }}</span>
         </div>
       </div>
+      <div v-if="type === 'LIVRAISON'" class="border-b mb-2 pb-2 px-2 flex items-center justify-between gap-2">
+        <span class="text-xl">Livraison</span>
+        <span class="text-xl font-bold">{{ livraison }} <span class="text-base">DH</span></span>
+      </div>
       <div v-if="showPromo" class="border-b mb-2 pb-2 flex flex-col gap-1 px-2">
         <div v-if="cart.length > 0" class="flex items-center justify-between">
           <span class="text-xl">Sous total</span>
@@ -97,7 +112,7 @@
       </div>
       <div v-if="cart.length > 0" class="flex items-center justify-between">
         <span class="text-3xl">TOTAL</span>
-        <span class="text-3xl font-bold">{{ parseFloat(subTotal - percentTotal).toFixed(2) }}</span>
+        <span class="text-3xl font-bold">{{ parseFloat((subTotal + livraison) - percentTotal).toFixed(2) }}</span>
       </div>
     </div>
     <div class="flex flex-col gap-4 justify-center items-center text-center">
