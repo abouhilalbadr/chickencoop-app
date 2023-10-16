@@ -56,7 +56,7 @@
 
   const getLivraison = (value) => {
     const livraison = livraisons.find(item => item.value === value)
-    return livraison ? livraison.name : 'Gratuit'
+    return livraison ? livraison.name : ''
   }
 
 </script>
@@ -112,7 +112,7 @@
       </div>
       <div v-if="cart.length > 0" class="flex items-center justify-between">
         <span class="text-3xl">TOTAL</span>
-        <span class="text-3xl font-bold">{{ parseFloat((subTotal + livraison) - percentTotal).toFixed(2) }}</span>
+        <span class="text-3xl font-bold">{{ parseFloat((subTotal + (livraison === -1 ? 0 : livraison)) - percentTotal).toFixed(2) }}</span>
       </div>
     </div>
     <div class="flex flex-col gap-4 justify-center items-center text-center">

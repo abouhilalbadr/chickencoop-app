@@ -239,11 +239,11 @@
       </div>
       <div v-if="cart.length > 0" class="mb-2 mx-2 flex items-center justify-between gap-2">
         <span class="text-xl text-black/40 font-bold">Echange</span>
-        <span class="text-2xl font-bold font-bree-serif text-main">{{ parseFloat(pay - ((subTotal + livraison) - percentTotal)).toFixed(2) }} <span class="text-base">DH</span></span>
+        <span class="text-2xl font-bold font-bree-serif text-main">{{ parseFloat(pay - ((subTotal + (livraison === -1 ? 0 : livraison)) - percentTotal)).toFixed(2) }} <span class="text-base">DH</span></span>
       </div>
       <div v-if="cart.length > 0" class="mb-4 mx-2 flex items-center justify-between gap-2 border-t border-border pt-4">
         <span class="text-xl text-black/40 font-bold">Total</span>
-        <span class="text-2xl font-bold font-bree-serif text-main">{{ parseFloat((subTotal + livraison) - percentTotal).toFixed(2) }} <span class="text-base">DH</span></span>
+        <span class="text-2xl font-bold font-bree-serif text-main">{{ parseFloat((subTotal + (livraison === -1 ? 0 : livraison)) - percentTotal).toFixed(2) }} <span class="text-base">DH</span></span>
       </div>
       <money v-if="store.settings.money && cart.length > 0" @reset="resetPay" @add="addNum" />
       <calc v-if="!store.settings.money && cart.length > 0" @reset="resetPay" @add="setNum" />
@@ -253,7 +253,7 @@
       Envoyez au cuisinier
     </button>
   </div>
-  <div id="printArea" class="hidden">
+  <div id="printArea" class="hiddden">
     <print-item
       :cart="cart"
       :subTotal="subTotal"
