@@ -102,6 +102,13 @@ const saveData = () => {
               >
                 XL
               </button>
+              <button
+                class="w-20 h-10 rounded-md border border-main text-xl"
+                :class="size === 'xxl' ? 'bg-main text-white' : 'text-main'"
+                @click="addSize('xxl')"
+              >
+                XXL
+              </button>
             </div>
             <h4 class="relative text-2xl title text-main">Les viandes</h4>
             <viande class="my-8" :max="make[size].size " :settings="settings" @save-viandes="addViandes" />

@@ -22,9 +22,10 @@
   const type = ref('SUR_PLACE')
   const numModal = ref(false)
   const loading = ref(false)
-  const livraison = ref(-1)
+  const livraison = ref(0)
   // Epson Printer
   const bipeur = ref(0);
+  const freeUser = ref('')
 
   const props = defineProps(['cart'])
   const emit = defineEmits(['cartDel'])
@@ -100,7 +101,7 @@
       type: type.value,
       total: parseFloat((subTotal.value + (livraison.value === -1 ? 0 : livraison.value)) - percentTotal.value),
       number: e,
-      invoice: '',
+      invoice: freeUser.value,
     }
     loading.value = true
     try {
@@ -111,8 +112,9 @@
       })
       if (data?.data?.id) {
         percent.value = 0
-        livraison.value = -1
+        livraison.value = 0
         pay.value = ''
+        freeUser.value = ''
         type.value = 'SUR_PLACE'
         emit('cartDel', 'clear')
         loading.value = false
@@ -176,7 +178,8 @@
 
   const changeType = (value) => {
     type.value = value
-    livraison.value = -1
+    livraison.value = 0
+    freeUser.value = ''
   }
 
 </script>
@@ -219,6 +222,12 @@
       <button @click="livraison = 0" class="border border-main rounded-md" :class="livraison === 0 ? 'bg-main text-white' : 'text-main bg-white'">Gratuit</button>
       <button @click="livraison = 10" class="border border-main text-main rounded-md" :class="livraison === 10 ? 'bg-main text-white' : 'text-main bg-white'">Zone A</button>
       <button @click="livraison = 20" class="border border-main text-main rounded-md" :class="livraison === 20 ? 'bg-main text-white' : 'text-main bg-white'">Zone B</button>
+    </div>
+    <div v-if="type === 'GRATUIT'">
+      <div v-if="cart.length > 0" class="mb-4 mx-2 flex items-center justify-between gap-2">
+        <span class="text-black/40 font-bold">Gratuit pour qui</span>
+        <input type="text" placeholder="Nom" class="border border-border rounded-lg p-2 h-10 text-lg text-main outline-none" v-model="freeUser">
+      </div>
     </div>
     <div v-if="type !== 'GRATUIT'">
       <div v-if="cart.length > 0" class="mb-4 mx-2 flex items-center justify-between gap-2 border-t border-border pt-4">
