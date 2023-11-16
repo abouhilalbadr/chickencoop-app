@@ -54,7 +54,8 @@
     return finalFormat
   }
 
-  const getLivraison = (value) => {
+  const getLivraison = (type, value) => {
+    if (type !== 'LIVRAISON') return ''
     const livraison = livraisons.find(item => item.value === value)
     return livraison ? livraison.name : ''
   }
@@ -69,7 +70,7 @@
       <p class="text-lg">Bab Asfi 2, 24, Marrakech 40170</p>
       <span class="text-lg ">TEL: 06.24.42.74.06</span>
       <span class="text-lg ">Bipeur: {{ bipeur }}</span>
-      <span class="text-3xl font-bold">{{ getType(type) }} {{ getLivraison(livraison) }}</span>
+      <span class="text-3xl font-bold">{{ getType(type) }} {{ getLivraison(type, livraison) }}</span>
     </div>
     <div class="border-y my-4 py-4 border-solid border-black w-full">
       <div class="flex justify-center items-center mb-2">
