@@ -1,11 +1,12 @@
 <script setup>
-  defineProps(['cart', 'subTotal', 'showPromo', 'percent', 'percentTotal', 'pay', 'bipeur', 'type', 'livraison'])
+  defineProps(['cart', 'subTotal', 'showPromo', 'percent', 'percentTotal', 'pay', 'bipeur', 'type', 'livraison', 'glovoAdds'])
 
   const types = [
     { name: 'Sur place', value: 'SUR_PLACE' },
     { name: 'À emporter', value: 'A_EMPORTER' },
     { name: 'Livraison', value: 'LIVRAISON' },
     { name: 'Gratuit', value: 'GRATUIT' },
+    { name: 'Glovo', value: 'GLOVO' },
   ]
 
   const livraisons = [
@@ -69,7 +70,7 @@
       <h1 class="uppercase text-lg mt-2">Chicken Coop</h1>
       <p class="text-lg">Bab Asfi 2, 24, Marrakech 40170</p>
       <span class="text-lg ">TEL: 06.24.42.74.06</span>
-      <span class="text-lg ">Bipeur: {{ bipeur }}</span>
+      <span v-if="type !== 'GLOVO'" class="text-lg ">Bipeur: {{ bipeur }}</span>
       <span class="text-3xl font-bold">{{ getType(type) }} {{ getLivraison(type, livraison) }}</span>
     </div>
     <div class="border-y my-4 py-4 border-solid border-black w-full">
@@ -94,7 +95,7 @@
               <span v-if="item.extras && item.extras.length > 0">Les extras: {{ item.extras.join(', ') }}</span>
             </p>
           </div>
-          <span class="text-xl font-bold">{{ parseFloat(item.price).toFixed(2) }}</span>
+          <span class="text-xl font-bold">{{ parseFloat(Math.floor(item.price * glovoAdds + item.price)).toFixed(2) }}</span>
         </div>
       </div>
       <div v-if="type === 'LIVRAISON'" class="border-b mb-2 pb-2 px-2 flex items-center justify-between gap-2">

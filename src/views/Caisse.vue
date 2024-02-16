@@ -176,6 +176,10 @@ const getMenu = async () => {
   }
 }
 
+const updateCart = (e) => {
+  cart.value = e
+}
+
 onMounted(() => {
   store.setUser(store.user)
   getCategories()
@@ -256,7 +260,7 @@ onMounted(() => {
       <orders-notif :notif="notifications" />
     </div>
     <div class="lg:col-span-2 flex flex-col gap-6">
-      <panier :cart="cart" @cart-del="delFromCart" />
+      <panier :cart="cart" @cart-del="delFromCart" @update-cart="updateCart" />
     </div>
   </main>
 </template>

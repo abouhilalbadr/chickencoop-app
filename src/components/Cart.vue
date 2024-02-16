@@ -1,5 +1,5 @@
 <script setup>
-  import { ref, computed } from "vue"
+  import { ref, computed, watch } from "vue"
   import axios from 'axios'
   import Swal from 'sweetalert2'
 
@@ -26,14 +26,16 @@
   // Epson Printer
   const bipeur = ref(0);
   const freeUser = ref('')
+  // Glovo
+  const glovoAdds = ref(0)
 
   const props = defineProps(['cart'])
-  const emit = defineEmits(['cartDel'])
+  const emit = defineEmits(['cartDel', 'updateCart'])
 
   const subTotal = computed(() => {
     let total = 0
     props.cart.map((item) => {
-      total += item.price
+      total += Math.floor(item.price * glovoAdds.value + item.price)
     })
     return total
   })
@@ -177,6 +179,8 @@
   }
 
   const changeType = (value) => {
+    if (type.value === value) return
+    glovoAdds.value = (value === 'GLOVO' && glovoAdds.value === 0) ? 0.3 : 0
     type.value = value
     livraison.value = 0
     freeUser.value = ''
@@ -203,6 +207,7 @@
         :key="i"
         :item="item"
         @click="removeItem(item)"
+        :glovoAdds="glovoAdds"
       />
     </div>
     <div v-if="cart.length > 0" class="mb-4 mx-2 flex flex-col gap-2 border-t border-border pt-4">
@@ -210,11 +215,18 @@
       <div class="grid grid-cols-2 gap-2 mb-4">
         <button
           v-for="(item, i) in types" :key="i"
-          class="border border-main rounded-md py-4 font-bold"
+          class="border border-main rounded-md py-4 text-sm"
           :class="item.value === type ? 'bg-main text-white' : 'text-main bg-white'"
           @click="changeType(item.value)"
         >
           {{ item.name }}
+        </button>
+        <button
+          class="border border-main rounded-md py-4 text-sm col-span-2"
+          :class="type === 'GLOVO' ? 'bg-main text-white' : 'text-main bg-white'"
+          @click="changeType('GLOVO')"
+        >
+          Glovo
         </button>
       </div>
     </div>
@@ -230,6 +242,10 @@
       </div>
     </div>
     <div v-if="type !== 'GRATUIT'">
+      <div v-if="cart.length > 0 && type === 'GLOVO'" class="mb-4 mx-2 flex items-center justify-between gap-2 border-t border-border pt-4">
+        <span class="text-xl text-black/40 font-bold">Glovo</span>
+        <span class="text-2xl font-bold font-bree-serif text-main">{{ glovoAdds * 100 }} <span class="text-base">%</span></span>
+      </div>
       <div v-if="cart.length > 0" class="mb-4 mx-2 flex items-center justify-between gap-2 border-t border-border pt-4">
         <span class="text-black/40 font-bold">Sous total</span>
         <span class="text-xl font-bold font-bree-serif text-main">{{ subTotal }} <span class="text-base">DH</span></span>
@@ -273,6 +289,7 @@
       :bipeur="bipeur"
       :type="type"
       :livraison="livraison"
+      :glovoAdds="glovoAdds"
     />
     <div class="py-2 my-2 border border-dotted border-black"></div>
     <print-item
@@ -285,6 +302,7 @@
       :bipeur="bipeur"
       :type="type"
       :livraison="livraison"
+      :glovoAdds="glovoAdds"
     />
   </div>
 </template>
