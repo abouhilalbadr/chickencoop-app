@@ -27,6 +27,7 @@ const closeTacosModal = () => {
   emit('tacosClose')
   emit('changeStep', 'reset')
   size.value = 'm'
+  plusPrice.value = 0
 }
 
 const nextStep = () => {
@@ -60,7 +61,7 @@ const saveData = () => {
   order.value.size = size.value
   order.value.name = "Tacos Composer"
   order.value.image = store.baseUrl + "/public/tacos-composez.jpg"
-  order.value.price = parseInt(make[size.value].price) + plusPrice.value
+  order.value.price = (store.glovo ? parseInt(make[size.value].priceGlovo) : parseInt(make[size.value].price)) + plusPrice.value
   order.value.productId = 0
   order.value.mode = 'make-tacos'
   emit('sendData', order.value)
@@ -127,7 +128,7 @@ const saveData = () => {
     <template v-slot:buttons>
       <div class="mb-8 mx-2 flex items-center gap-2 text-2xl font-bold font-bree-serif">
         <span>Total:</span>
-        <span class="text-main">{{ parseInt(make[size].price) + plusPrice }} DH </span>
+        <span class="text-main">{{ (store.glovo ? parseInt(make[size].priceGlovo) : parseInt(make[size].price)) + plusPrice }} DH </span>
       </div>
       <div class="grid grid-cols-2 gap-8">
         <button

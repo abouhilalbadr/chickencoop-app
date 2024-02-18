@@ -20,7 +20,7 @@ button {
 }
 
 .details::after {
-  @apply content-[''] absolute bg-gradient-to-t from-black/90 w-full h-full bottom-0 left-0 rounded-b-xl;
+  @apply content-[''] absolute bg-gradient-to-t from-black/90 w-full h-full bottom-0 left-0 rounded-md;
 }
 
 .details * {

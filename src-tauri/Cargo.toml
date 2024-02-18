@@ -1,6 +1,6 @@
 [package]
 name = "chickencoop"
-version = "1.0.18"
+version = "1.0.19"
 description = "Chicken Coop caisse app"
 authors = ["you"]
 license = ""

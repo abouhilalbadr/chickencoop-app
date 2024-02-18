@@ -1,5 +1,5 @@
 <script setup>
-  defineProps(['cart', 'subTotal', 'showPromo', 'percent', 'percentTotal', 'pay', 'bipeur', 'type', 'livraison', 'glovoAdds'])
+  defineProps(['cart', 'subTotal', 'showPromo', 'percent', 'percentTotal', 'pay', 'bipeur', 'type', 'livraison'])
 
   const types = [
     { name: 'Sur place', value: 'SUR_PLACE' },
@@ -95,7 +95,7 @@
               <span v-if="item.extras && item.extras.length > 0">Les extras: {{ item.extras.join(', ') }}</span>
             </p>
           </div>
-          <span class="text-xl font-bold">{{ parseFloat(Math.floor(item.price * glovoAdds + item.price)).toFixed(2) }}</span>
+          <span class="text-xl font-bold">{{ parseFloat(item.price).toFixed(2) }}</span>
         </div>
       </div>
       <div v-if="type === 'LIVRAISON'" class="border-b mb-2 pb-2 px-2 flex items-center justify-between gap-2">

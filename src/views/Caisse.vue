@@ -75,7 +75,6 @@ const setCurrent = (i) => {
   foodModal.value = true
 }
 const setCurrentMenu = (i) => {
-  console.log(menu.value[i]);
   currentFood.value = menu.value[i]
   menuModal.value = true
 }

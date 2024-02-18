@@ -1,11 +1,8 @@
 <script setup>
   import { ref } from 'vue'
-  const props = defineProps(['item', 'glovoAdds'])
-  const hover = ref(false)
 
-  const calculatePrice = (price) => {
-    return Math.floor(price * props.glovoAdds + price)
-  }
+  const props = defineProps(['item'])
+  const hover = ref(false)
 
 </script>
 
@@ -25,6 +22,6 @@
         </p>
       </div>
     </div>
-    <span class="text-xl font-bree-serif text-main">{{ calculatePrice(item.price) }} <span class="text-base">DH</span></span>
+    <span class="text-xl font-bree-serif text-main">{{ item.price }} <span class="text-base">DH</span></span>
   </div>
 </template>

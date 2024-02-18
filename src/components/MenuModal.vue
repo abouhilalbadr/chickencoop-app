@@ -14,7 +14,7 @@ const plusPrice = ref(0)
 const number = ref(1)
 const props = defineProps(['currentFood', 'foodModal', 'settings'])
 const emit = defineEmits(['sendData', 'foodClose'])
-const currentPrice = computed(() => props.currentFood.price)
+const currentPrice = computed(() => store.glovo ? props.currentFood.priceGlovo : props.currentFood.price)
 
 const closeModal = () => {
   emit('foodClose')

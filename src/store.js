@@ -20,7 +20,8 @@ export const useStore = defineStore('main', {
         message: '',
 
       },
-      unique: 0
+      unique: 0,
+      glovo: false,
     }
   },
   actions: {
@@ -74,6 +75,9 @@ export const useStore = defineStore('main', {
     removeNotification(i) {
       console.log(i, this.notifications);
       this.notifications.splice(i, 1);
+    },
+    setGlovo(val) {
+      this.glovo = val
     },
     logout() {
       this.user = null
