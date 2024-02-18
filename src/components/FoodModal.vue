@@ -103,7 +103,7 @@ const checkSaucesExtras = computed(() => {
               +
             </div>
           </div>
-          <div v-if="currentFood.categoryId == 14">
+          <div v-if="currentFood.categoryId == 11">
             <h4 class="relative text-xl title text-main mb-6">Les Tailles</h4>
             <div class="flex gap-4">
               <button
