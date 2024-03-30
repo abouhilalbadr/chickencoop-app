@@ -11,6 +11,7 @@ import Fries from "./icons/food/Fries.vue";
 import Wings from "./icons/food/Wings.vue";
 import Pizza from "./icons/food/Pizza.vue";
 import Oven from "./icons/food/Oven.vue";
+import Panini from "./icons/food/Panini.vue";
 
 defineProps(['food', 'showMenu'])
 const emit = defineEmits(['active'])
@@ -41,6 +42,7 @@ const setActive = (i) => {
     <Wings v-if="item.image === 'wings'" class="h-8" />
     <Pizza v-if="item.image === 'pizza'" class="h-8" />
     <Oven v-if="item.image === 'oven'" class="h-8" />
+    <Panini v-if="item.image === 'panini'" class="h-8" />
     <span class="capitalize text-xs">{{ item.name }}</span>
   </button>
 </template>
