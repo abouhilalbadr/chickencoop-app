@@ -1,5 +1,5 @@
 <script setup>
-  defineProps(['cart', 'subTotal', 'showPromo', 'percent', 'percentTotal', 'pay', 'bipeur', 'type', 'livraison'])
+  defineProps(['cart', 'subTotal', 'showPromo', 'percent', 'percentTotal', 'pay', 'bipeur', 'type', 'livraison', 'payType'])
 
   const types = [
     { name: 'Sur place', value: 'SUR_PLACE' },
@@ -72,6 +72,7 @@
       <span class="text-lg ">TEL: 06.24.42.74.06</span>
       <span v-if="type !== 'GLOVO'" class="text-lg ">Bipeur: {{ bipeur }}</span>
       <span class="text-3xl font-bold">{{ getType(type) }} {{ getLivraison(type, livraison) }}</span>
+      <span v-if="type === 'GLOVO'" class="text-xl font-bold">{{ payType === 'CASH' ? 'Espèce' : 'Carte bancaire' }}</span>
     </div>
     <div class="border-y my-4 py-4 border-solid border-black w-full">
       <div class="flex justify-center items-center mb-2">

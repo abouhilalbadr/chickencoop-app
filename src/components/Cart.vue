@@ -23,6 +23,7 @@
   const numModal = ref(false)
   const loading = ref(false)
   const livraison = ref(0)
+  const payType = ref('CASH')
   // Epson Printer
   const bipeur = ref(0);
   const freeUser = ref('')
@@ -101,7 +102,7 @@
       type: type.value,
       total: parseFloat((subTotal.value + (livraison.value === -1 ? 0 : livraison.value)) - percentTotal.value),
       number: e,
-      invoice: freeUser.value,
+      invoice: type.value === 'GLOVO' ? payType.value : freeUser.value,
     }
     loading.value = true
     try {
@@ -116,6 +117,7 @@
         pay.value = ''
         freeUser.value = ''
         type.value = 'SUR_PLACE'
+        payType.value = 'CASH'
         emit('cartDel', 'clear')
         loading.value = false
         window.print()
@@ -183,6 +185,7 @@
     type.value = value
     livraison.value = 0
     freeUser.value = ''
+    payType.value = 'CASH'
   }
 
 </script>
@@ -230,8 +233,12 @@
     </div>
     <div v-if="type === 'LIVRAISON'" class="grid grid-cols-2 lg:grid-cols-3 gap-6 mb-6 px-2">
       <button @click="livraison = 0" class="border border-main rounded-md" :class="livraison === 0 ? 'bg-main text-white' : 'text-main bg-white'">Gratuit</button>
-      <button @click="livraison = 10" class="border border-main text-main rounded-md" :class="livraison === 10 ? 'bg-main text-white' : 'text-main bg-white'">Zone A</button>
-      <button @click="livraison = 20" class="border border-main text-main rounded-md" :class="livraison === 20 ? 'bg-main text-white' : 'text-main bg-white'">Zone B</button>
+      <button @click="livraison = 10" class="border border-main rounded-md" :class="livraison === 10 ? 'bg-main text-white' : 'text-main bg-white'">Zone A</button>
+      <button @click="livraison = 20" class="border border-main rounded-md" :class="livraison === 20 ? 'bg-main text-white' : 'text-main bg-white'">Zone B</button>
+    </div>
+    <div v-if="type === 'GLOVO'" class="grid grid-cols-2 gap-6 mb-6 px-2">
+      <button @click="payType = 'CASH'" class="border border-main rounded-md py-2" :class="payType === 'CASH' ? 'bg-main text-white' : 'text-main bg-white'">Espèce</button>
+      <button @click="payType = 'CARD'" class="border border-main rounded-md py-2" :class="payType === 'CARD' ? 'bg-main text-white' : 'text-main bg-white'">Carte bancaire</button>
     </div>
     <div v-if="type === 'GRATUIT'">
       <div v-if="cart.length > 0" class="mb-4 mx-2 flex items-center justify-between gap-2">
@@ -283,6 +290,7 @@
       :bipeur="bipeur"
       :type="type"
       :livraison="livraison"
+      :payType="payType"
     />
     <div class="py-2 my-2 border border-dotted border-black"></div>
     <print-item
@@ -295,6 +303,7 @@
       :bipeur="bipeur"
       :type="type"
       :livraison="livraison"
+      :payType="payType"
     />
   </div>
 </template>
