@@ -1,8 +1,8 @@
 <script setup>
 import { ref } from "vue"
 import Header from "../../components/Header.vue";
-import ChargeMain from "../../components/charge/main.vue";
-import ChargeAdd from "../../components/charge/add.vue";
+import ChargeMain from "../../components/charge/Main.vue";
+import ChargeAdd from "../../components/charge/Add.vue";
 
 import { useStore } from "../../store"
 
