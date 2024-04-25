@@ -1,6 +1,6 @@
 <script setup>
 import { useRouter } from 'vue-router'
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 
 import SettingModal from "../components/SettingModal.vue";
 import Cash from "../components/icons/Cash.vue";
@@ -30,6 +30,16 @@ const returnBack = () => {
   router.push('/')
 }
 
+// check url and set page
+onMounted(() => {
+  console.log(props.page);
+  if (props.page === 'stockage') {
+    store.setType('stockage')
+  } else {
+    store.setType('caisse')
+  }
+})
+
 </script>
 
 <template>
@@ -45,7 +55,7 @@ const returnBack = () => {
             <Cart v-if="store.type === 'stockage'" class="h-16 fill-main relative top-1" />
             <Cash v-else class="h-16 fill-main relative top-1" />
             <span class="text-main font-bree-serif">
-              {{ store.type === 'stockage' ? "Stockage" : "Caisse"}}
+              {{ store.type === 'stockage' ? "Charge" : "Caisse"}}
             </span>
           </div>
         </div>

@@ -79,6 +79,9 @@ export const useStore = defineStore('main', {
     setGlovo(val) {
       this.glovo = val
     },
+    setType(type) {
+      this.type = type
+    },
     logout() {
       this.user = null
       localStorage.removeItem('user')

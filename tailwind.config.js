@@ -29,6 +29,7 @@ export default {
       body: '#fefefe',
       border: '#ddd',
       notif: '#FFFBEB',
+      red: '#ff0000',
     },
     extend: {
       boxShadow: {

@@ -24,7 +24,7 @@ const showCash = () => {
       <div class="flex justify-between gap-4 w-full lg:w-1/3 mt-16">
         <button @click="showCart" class="group transition flex flex-col items-center gap-2 bg-white border-2 border-main rounded-md w-64 py-4 hover:bg-main">
           <Cart class="h-32 fill-main group-hover:fill-white" />
-          <span class="text-main group-hover:text-white font-bree-serif font-bold text-3xl">Stockage</span>
+          <span class="text-main group-hover:text-white font-bree-serif font-bold text-3xl">Charges</span>
         </button>
         <button @click="showCash" class="group transition flex flex-col items-center gap-2 bg-white border-2 border-main rounded-md w-64 py-4 hover:bg-main">
           <Cash class="h-32 fill-main group-hover:fill-white" />

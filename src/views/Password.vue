@@ -13,7 +13,7 @@ const store = useStore()
 const router = useRouter()
 const loading = ref(false)
 const login = reactive({
-  email: store.type === 'caisse' ? 'caisse@chickencoop.ma' : 'stock@chickencoop.ma',
+  email: store.type === 'caisse' ? 'caisse@chickencoop.ma' : 'charge@chickencoop.ma',
   password: ''
 })
 const deleteNum = () => {
