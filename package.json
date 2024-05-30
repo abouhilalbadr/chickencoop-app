@@ -1,7 +1,7 @@
 {
   "name": "app",
   "private": true,
-  "version": "1.0.23",
+  "version": "1.0.24",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -12,6 +12,7 @@
   "dependencies": {
     "@headlessui/vue": "^1.7.14",
     "@tauri-apps/api": "^1.4.0",
+    "@vuepic/vue-datepicker": "^8.7.0",
     "axios": "^1.4.0",
     "pinia": "^2.1.4",
     "socket.io-client": "^4.7.1",

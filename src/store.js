@@ -85,9 +85,7 @@ export const useStore = defineStore('main', {
     logout() {
       this.user = null
       localStorage.removeItem('user')
-      this.socket.on("disconnect", () => {
-        this.connected = false;
-      });
+      this.connected = false;
     }
   },
 })

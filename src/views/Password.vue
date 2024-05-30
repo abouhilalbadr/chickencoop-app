@@ -55,7 +55,7 @@ const returnBack = () => {
         <div v-if="store.type" class="flex justify-center items-center">
             <div v-if="store.type === 'stockage'" class="flex flex-col items-center gap-2 border-2 border-main rounded-md w-64 py-4 bg-main">
                 <Cart class="h-32 fill-white" />
-                <span class="text-white font-bree-serif font-bold text-3xl">Stockage</span>
+                <span class="text-white font-bree-serif font-bold text-3xl">Charges</span>
             </div>
             <div v-else class="flex flex-col items-center gap-2 border-2 border-main rounded-md w-64 py-4 bg-main">
                 <Cash class="h-32 fill-white" />

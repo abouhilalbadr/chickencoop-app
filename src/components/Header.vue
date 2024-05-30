@@ -32,7 +32,6 @@ const returnBack = () => {
 
 // check url and set page
 onMounted(() => {
-  console.log(props.page);
   if (props.page === 'stockage') {
     store.setType('stockage')
   } else {
