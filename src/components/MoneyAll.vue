@@ -29,7 +29,8 @@
   const deleteNum = () => {
     calculation.value = 0
     money.value.forEach((item) => {
-      item.fois = 1
+      item.fois = 1,
+      item.disabled = false
     })
   }
 
@@ -52,21 +53,21 @@
     <div class="grid grid-cols-3 gap-4 my-6">
       <div
         v-for="(item, i) in money" :key="i"
-        class="relative flex items-center gap-4"
+        class="relative grid grid-cols-5 items-center gap-2"
       >
         <div v-if="item.disabled" class="absolute inset-0 w-full h-full bg-black/50 z-30 cursor-not-allowed rounded-md"></div>
         <button
           @click="addNum(item)"
-          class="flex items-center justify-center"
+          class="col-span-2 flex items-center justify-center"
           :disabled="item.disabled"
         >
-          <img :src="item.image" :alt="`${item.value}DH`">
+          <img class="h-16 object-cover" :src="item.image" :alt="`${item.value}DH`">
         </button>
-        <span class="text-xs"> X </span>
+        <span class="text-xs flex justify-center"> X </span>
         <input
           v-model="item.fois"
           type="number"
-          class="border border-border rounded-lg p-2 h-8 text-sm text-main outline-none"
+          class="col-span-2 border border-border rounded-lg p-2 h-8 text-sm text-main outline-none"
         >
       </div>
     </div>
