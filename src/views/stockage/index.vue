@@ -23,17 +23,10 @@ const editItem = (item) => {
 <template>
   <Header page="stockage" />
   <div class="px-4 flex flex-col gap-8 py-8">
-    <div class="flex justify-end gap-2">
-      <button
-        v-if="page === 'main'"
-        class="border border-main text-main px-6 py-2 rounded-md transition flex justify-center items-center gap-2 hover:bg-main/20"
-        @click="page = 'add'"
-      >
-        <span>
-          <CartIcon class="h-8 fill-main relative top-0.5" />
-        </span>
-        <span class="text-sm">Ajoutez des charge</span>
-      </button>
+    <div
+      class="flex gap-8"
+      :class="page === 'main' ? 'justify-between' : 'justify-end'"
+    >
       <button
         v-if="page === 'main'"
         class="border border-main text-main px-6 py-2 rounded-md transition flex justify-center items-center gap-2 hover:bg-main/20"
@@ -43,6 +36,16 @@ const editItem = (item) => {
           <CaisseIcon class="text-main" />
         </span>
         <span class="text-sm">Ajoutez la caisse d'aujourd'hui</span>
+      </button>
+      <button
+        v-if="page === 'main'"
+        class="border border-main text-main px-6 py-2 rounded-md transition flex justify-center items-center gap-2 hover:bg-main/20"
+        @click="page = 'add'"
+      >
+        <span>
+          <CartIcon class="h-8 fill-main relative top-0.5" />
+        </span>
+        <span class="text-sm">Ajoutez des charge</span>
       </button>
       <button
         v-else

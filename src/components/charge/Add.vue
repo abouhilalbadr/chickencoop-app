@@ -16,6 +16,27 @@ const errors = ref({
   price: '',
 })
 
+const suppliers = [
+  'Boulangerie',
+  'Favorita',
+  'Boucherie',
+  'Pesserie',
+  'Gaz',
+  'Huile',
+  'Emballage',
+  'Légumes',
+  'Fruits',
+  'Station d\'essence',
+  'Avance',
+  'Poulet',
+  'Coca-Cola',
+  'Boissons',
+  'Facture Électricité',
+  'Facture Eau',
+  'Facture internet',
+  'Autre',
+]
+
 const validateInputs = () => {
   let isValid = true
   if (!charge.supplier) {
@@ -72,14 +93,22 @@ const submitCharge = async () => {
       >
         Fournisseur
       </label>
-      <input
-        type="text" id="supplier"
+      <select
+        id="supplier"
         class="outline-none w-full px-4 py-2 border rounded-md"
         :class="errors.supplier ? 'border-red placeholder:text-red text-red' : 'border-gray'"
-        placeholder="Favorita"
         v-model="charge.supplier"
         @input="errors.supplier = ''"
-      />
+      >
+        <option value="" disabled selected>Choisir un fournisseur</option>
+        <option
+          v-for="(supplier, i) in suppliers"
+          :key="i"
+          :value="supplier"
+        >
+          {{ supplier }}
+        </option>
+      </select>
       <span
         v-if="errors.supplier"
         class="italic text-red text-xs"

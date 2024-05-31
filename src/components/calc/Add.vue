@@ -4,8 +4,6 @@ import axios from 'axios'
 import VueDatePicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css'
 
-import Money from '../MoneyAll.vue';
-
 const props = defineProps(['token'])
 
 const calculation = reactive({
@@ -35,17 +33,6 @@ const calculateTotal = computed(
 const formatValue = (item) => {
   return new Date(item)
 }
-
-const resetPay = () => {
-  calculation.newC = 0
-}
-
-const addNum = (num) => {
-    if ((typeof calculation.newC) === 'string') {
-      calculation.newC = parseInt(calculation.newC || 0)
-    }
-    calculation.newC = calculation.newC + num
-  }
 
 const getDailyDetails = async (date) => {
   errors.value = {
@@ -171,11 +158,10 @@ const submitCalc = async () => {
           placeholder="200"
           v-model="calculation.newC"
         />
-        <span v-if="errors.newC">
+        <span v-if="errors.newC" class="text-red italic text-sm px-2">
           {{ errors.newC }}
         </span>
       </div>
-      <money @reset="resetPay" @add="addNum" />
     </div>
     <div class="self-end">
       <button type="submit" class="bg-main text-white px-10 py-2 rounded-md hover:bg-main/80 transition disabled:bg-main/50 disabled:cursor-wait flex justify-center items-center" :disabled="loading">
