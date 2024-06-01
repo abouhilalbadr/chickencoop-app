@@ -4,6 +4,8 @@ import axios from 'axios'
 import VueDatePicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css'
 
+import Money from '../MoneyAll.vue';
+
 const props = defineProps(['token'])
 
 const calculation = reactive({
@@ -17,6 +19,7 @@ const calculation = reactive({
 const loading = ref(false)
 const loadingCalc = ref(false)
 const minDate = new Date('05/30/2024')
+const caisseTotal = ref(0)
 const errors = ref({
   date: '',
   total: '',
@@ -119,6 +122,14 @@ const submitCalc = async () => {
   }
 }
 
+const calcTotal = (total) => {
+  caisseTotal.value = total
+}
+
+const resetTotal = () => {
+  caisseTotal.value = 0
+}
+
 </script>
 <template>
   <form @submit.prevent="submitCalc" class="flex flex-col gap-8 px-6">
@@ -157,11 +168,18 @@ const submitCalc = async () => {
           :class="errors.newC ? 'border-red placeholder:text-red text-red' : 'border-gray-dark'"
           placeholder="200"
           v-model="calculation.newC"
+          @input="errors.newC = ''"
         />
         <span v-if="errors.newC" class="text-red italic text-sm px-2">
           {{ errors.newC }}
         </span>
       </div>
+    </div>
+    <div class="flex flex-col">
+      <label class="px-2 text-black/50" for="daily">
+        Total de caisse
+      </label>
+      <Money @totalCaisse="calcTotal" @resetCaisse="resetTotal" />
     </div>
     <div class="self-end">
       <button type="submit" class="bg-main text-white px-10 py-2 rounded-md hover:bg-main/80 transition disabled:bg-main/50 disabled:cursor-wait flex justify-center items-center" :disabled="loading">

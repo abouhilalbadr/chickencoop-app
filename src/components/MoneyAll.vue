@@ -11,6 +11,7 @@
   import Image200 from '../assets/images/200.jpg';
 
   const calculation = ref(0)
+  const emit = defineEmits(['totalCaisse', 'resetCaisse'])
   const money = ref([
     { value: 200, image: Image200, fois: 1, disabled: false },
     { value: 100, image: Image100, fois: 1, disabled: false },
@@ -22,9 +23,9 @@
     { value: 1, image: Image1, fois: 1, disabled: false },
   ])
   const addNum = (item) => {
-    console.log('clicked', item);
     item.disabled = true
     calculation.value = calculation.value + (item.value * item.fois)
+    emit('totalCaisse', calculation.value)
   }
   const deleteNum = () => {
     calculation.value = 0
@@ -32,6 +33,7 @@
       item.fois = 1,
       item.disabled = false
     })
+    emit('resetCaisse')
   }
 
 
