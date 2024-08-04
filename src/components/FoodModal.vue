@@ -46,7 +46,7 @@ const saveData = () => {
   store.setUnique()
   order.value.name = props.currentFood.name
   order.value.image = props.currentFood.image
-  if (props.currentFood.categoryId == 14) {
+  if (props.currentFood.categoryId == 11) {
     order.value.size = size.value
   }
   order.value.price = currentPrice.value + plusPrice.value
@@ -54,6 +54,7 @@ const saveData = () => {
   order.value.mode = 'make-normal'
   order.value.number = number.value
   order.value.index = number.value > 1 ? store.unique : 0
+  // order.value.size = size.value || null
   emit('sendData', order.value)
   emit('foodClose')
   show.value = 'sauce'

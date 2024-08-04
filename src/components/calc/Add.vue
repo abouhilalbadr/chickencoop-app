@@ -115,6 +115,8 @@ const submitCalc = async () => {
       if (data?.data?.id) {
         location.reload()
       }
+    } else {
+      alert("Échec de la création du calculation, veuillez réessayer")
     }
   } catch (error) {
     alert("Échec de la création du calculation, veuillez réessayer")
