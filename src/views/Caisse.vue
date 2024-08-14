@@ -234,7 +234,7 @@ onMounted(() => {
         </button>
       </div>
       <div class="h-[550px] overflow-scroll px-2">
-        <div v-if="showMenu" class="pt-2 pb-16 grid grid-cols-2 lg:grid-cols-3 gap-4">
+        <div v-if="showMenu" class="pt-2 pb-16 grid grid-cols-2 lg:grid-cols-4 gap-4">
           <Card
             v-for="(item, i) in menu"
             :key="i"
@@ -242,7 +242,7 @@ onMounted(() => {
             @click="setCurrentMenu(i)"
           />
         </div>
-        <div v-else class="pt-2 pb-16 grid grid-cols-2 lg:grid-cols-3 gap-4">
+        <div v-else class="pt-2 pb-16 grid grid-cols-2 lg:grid-cols-5 gap-4">
           <Card
             v-for="(item, i) in allFood[activeFood?.image]"
             :key="i"

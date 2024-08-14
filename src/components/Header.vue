@@ -46,23 +46,23 @@ onMounted(() => {
     :settingModal="modal"
     @settings-close="closeModal"
   />
-  <header class="p-4">
+  <header class="px-4 py-2">
       <div class="flex items-center justify-between gap-4">
         <div class="flex items-center gap-4">
-          <img src="../assets/images/logo.png" alt="Chicken Coop Logo" class="h-16">
+          <img src="../assets/images/logo.png" alt="Chicken Coop Logo" class="h-12">
           <div class="flex items-center gap-2">
             <Cart v-if="store.type === 'stockage'" class="h-16 fill-main relative top-1" />
-            <Cash v-else class="h-16 fill-main relative top-1" />
+            <Cash v-else class="h-12 fill-main relative top-1" />
             <span class="text-main font-bree-serif">
               {{ store.type === 'stockage' ? "Charge" : "Caisse"}}
             </span>
           </div>
         </div>
         <div class="flex items-center gap-8">
-          <button v-if="store.type === 'caisse'" @click="openModal" class="text-main h-12 w-12 rounded-md flex justify-center items-center">
+          <button v-if="store.type === 'caisse'" @click="openModal" class="text-main h-10 w-10 rounded-md flex justify-center items-center">
             <settings />
           </button>
-          <button @click="returnBack" class="bg-main flex gap-2 items-center text-white rounded-md px-10 py-4">
+          <button @click="returnBack" class="bg-main flex gap-2 items-center text-white rounded-md px-8 py-3">
             <lock />
             <span>Verrouiller</span>
           </button>

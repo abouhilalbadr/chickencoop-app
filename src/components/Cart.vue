@@ -216,14 +216,14 @@
       <div class="grid grid-cols-2 gap-2 mb-4">
         <button
           v-for="(item, i) in types" :key="i"
-          class="border border-main rounded-md py-4 text-sm"
+          class="border border-main rounded-md py-3 text-sm"
           :class="item.value === type ? 'bg-main text-white' : 'text-main bg-white'"
           @click="changeType(item.value)"
         >
           {{ item.name }}
         </button>
         <button
-          class="border border-main rounded-md py-4 text-sm col-span-2"
+          class="border border-main rounded-md py-3 text-sm col-span-2"
           :class="type === 'GLOVO' ? 'bg-main text-white' : 'text-main bg-white'"
           @click="changeType('GLOVO')"
         >
