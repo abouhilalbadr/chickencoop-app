@@ -7,7 +7,7 @@ import { useStore } from "./store"
 const store = useStore()
 
 const showAlert = computed(() => {
-  if (store.alert.show) {
+  if (store.alert.show && store.user.name === 'Caisse') {
     return Swal.fire({
       position: 'top-end',
       icon: store.alert.status,

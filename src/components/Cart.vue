@@ -28,7 +28,7 @@
   const bipeur = ref(0);
   const freeUser = ref('')
 
-  const props = defineProps(['cart'])
+  const props = defineProps(['cart', 'page'])
   const emit = defineEmits(['cartDel', 'updateCart'])
 
   const subTotal = computed(() => {
@@ -96,7 +96,7 @@
   const sendOrder = async (e) => {
     numModal.value = false
     bipeur.value = e
-    const order = {
+    let order = {
       products: JSON.stringify(props.cart),
       status: 'EN_ATTENTE',
       type: type.value,
@@ -105,6 +105,14 @@
       invoice: type.value === 'GLOVO' ? payType.value : freeUser.value,
     }
     loading.value = true
+    if (props.page === 'tablet') {
+      order = {
+        ...order,
+        systemType: 'tablet', data: JSON.stringify({
+          cart:props.cart, subTotal: subTotal.value, showPromo: showPromo.value, percent: percent.value, percentTotal: percentTotal.value, pay: pay.value, bipeur: e, type: type.value, livraison: livraison.value, payType: payType.value
+        })
+      }
+    }
     try {
       const { data } = await axios.post('/orders', order, {
         headers: {
@@ -120,8 +128,19 @@
         payType.value = 'CASH'
         emit('cartDel', 'clear')
         loading.value = false
-        window.print()
-        window.onafterprint = () => {
+        if (props.page === 'caisse') {
+          window.print()
+          window.onafterprint = () => {
+            Swal.fire({
+              position: 'top-end',
+              icon: 'success',
+              title: 'Commande créée',
+              showConfirmButton: false,
+              timer: 1500
+            })
+          }
+        }
+        if (props.page === 'tablet') {
           Swal.fire({
             position: 'top-end',
             icon: 'success',
@@ -279,7 +298,7 @@
       Envoyez au cuisinier
     </button>
   </div>
-  <div id="printArea" class="hidden">
+  <div v-if="cart.length > 0" id="printArea" class="hidden">
     <print-item
       :cart="cart"
       :subTotal="subTotal"

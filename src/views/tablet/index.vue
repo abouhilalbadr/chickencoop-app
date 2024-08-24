@@ -2,19 +2,18 @@
 import { ref, computed, reactive, onMounted } from "vue"
 import axios from 'axios'
 
-import { useStore } from "../store"
+import { useStore } from "../../store"
 
-import Header from "../components/Header.vue";
-import Card from "../components/Card.vue";
-import AddButton from "../components/AddButton.vue";
-import FoodList from "../components/FoodList.vue";
-import TacosModal from "../components/TacosModal.vue";
-import FoodModal from "../components/FoodModal.vue";
-import MenuModal from "../components/MenuModal.vue";
-import Panier from "../components/Cart.vue";
-import OrdersNotif from "../components/OrdersNotif.vue"
-import OrdersPrints from "../components/OrdersPrints.vue"
-import Menu from "../components/icons/food/Menu.vue";
+import Header from "../../components/Header.vue";
+import Card from "../../components/Card.vue";
+import AddButton from "../../components/AddButton.vue";
+import FoodList from "../../components/FoodList.vue";
+import TacosModal from "../../components/TacosModal.vue";
+import FoodModal from "../../components/FoodModal.vue";
+import MenuModal from "../../components/MenuModal.vue";
+import Panier from "../../components/Cart.vue";
+import OrdersNotif from "../../components/OrdersNotif.vue"
+import Menu from "../../components/icons/food/Menu.vue";
 
 const store = useStore()
 
@@ -34,8 +33,6 @@ const allFood = ref({})
 
 let settings = reactive([])
 
-const notifications = computed(() => store.notifications.sort((a, b) => (new Date(b.updatedAt) - new Date(a.updatedAt))))
-const prints = computed(() => store.prints || [])
 const activeFood = computed(() => food.value.find((item) => ( item.active )))
 
 const setActive = (i) => {
@@ -235,7 +232,7 @@ onMounted(() => {
           <span class="text-xs">Menu</span>
         </button>
       </div>
-      <div class="h-[550px] overflow-scroll px-2">
+      <div class="overflow-scroll px-2">
         <div v-if="showMenu" class="pt-2 pb-16 grid grid-cols-2 lg:grid-cols-4 gap-4">
           <Card
             v-for="(item, i) in menu"
@@ -244,7 +241,7 @@ onMounted(() => {
             @click="setCurrentMenu(i)"
           />
         </div>
-        <div v-else class="pt-2 pb-16 grid grid-cols-2 lg:grid-cols-5 gap-4">
+        <div v-else class="pt-2 pb-16 grid grid-cols-2 lg:grid-cols-4 gap-4">
           <Card
             v-for="(item, i) in allFood[activeFood?.image]"
             :key="i"
@@ -258,11 +255,9 @@ onMounted(() => {
           />
         </div>
       </div>
-      <orders-notif v-if="notifications.length > 0" :notif="notifications" />
-      <orders-prints v-if="prints.length > 0" :prints="prints" />
     </div>
     <div class="lg:col-span-2 flex flex-col gap-6">
-      <panier :cart="cart" @cart-del="delFromCart" @update-cart="updateCart" page="caisse" />
+      <panier :cart="cart" @cart-del="delFromCart" @update-cart="updateCart" page="tablet" />
     </div>
   </main>
 </template>

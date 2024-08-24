@@ -6,6 +6,7 @@ import SettingModal from "../components/SettingModal.vue";
 import Cash from "../components/icons/Cash.vue";
 import Cart from "../components/icons/Cart.vue";
 import Lock from "../components/icons/Lock.vue";
+import Tablet from "../components/icons/Tablet.vue";
 import Settings from "../components/icons/Settings.vue";
 
 import { useStore } from "../store"
@@ -51,10 +52,11 @@ onMounted(() => {
         <div class="flex items-center gap-4">
           <img src="../assets/images/logo.png" alt="Chicken Coop Logo" class="h-12">
           <div class="flex items-center gap-2">
-            <Cart v-if="store.type === 'stockage'" class="h-16 fill-main relative top-1" />
+            <Cart v-if="store?.user?.name === 'Charge'" class="h-16 fill-main relative top-1" />
+            <Tablet v-else-if="store?.user?.name === 'Tablet'" class="h-12 fill-main relative top-1" />
             <Cash v-else class="h-12 fill-main relative top-1" />
             <span class="text-main font-bree-serif">
-              {{ store.type === 'stockage' ? "Charge" : "Caisse"}}
+              {{ store?.user?.name || 'Caisse' }}
             </span>
           </div>
         </div>

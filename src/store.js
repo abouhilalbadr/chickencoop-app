@@ -14,6 +14,7 @@ export const useStore = defineStore('main', {
         percentage: false
       },
       notifications: [],
+      prints: [],
       alert: {
         show: false,
         status: '',
@@ -53,6 +54,20 @@ export const useStore = defineStore('main', {
         this.connected = true;
       });
 
+      this.socket.on("order:created", (order) => {
+        this.prints.push(JSON.parse(order))
+        this.alert.show = true
+        this.alert.status = 'success'
+        this.alert.message = 'Commande depuis la tablette prête à imprimer'
+        setTimeout(() => {
+          this.alert = {
+            show: false,
+            status: '',
+            message: '',
+          }
+        }, 3000);
+      })
+
       this.socket.on('order:update', (order) => {
         if (order.status === 'TERMINEE') {
           this.notifications.push(order)
@@ -73,8 +88,13 @@ export const useStore = defineStore('main', {
       this.notifications = data
     },
     removeNotification(i) {
-      console.log(i, this.notifications);
       this.notifications.splice(i, 1);
+    },
+    setPrints(data) {
+      this.prints = data
+    },
+    removePrint(i) {
+      this.prints.splice(i, 1);
     },
     setGlovo(val) {
       this.glovo = val

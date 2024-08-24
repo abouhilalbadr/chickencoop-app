@@ -3,6 +3,7 @@ import Home from "./views/Home.vue"
 import Password from "./views/Password.vue"
 import Caisse from "./views/Caisse.vue"
 import Stockage from "./views/stockage/index.vue"
+import Tablet from "./views/tablet/index.vue"
 
 import { useStore } from "./store"
 
@@ -11,6 +12,7 @@ const routes = [
   { path: '/password', component: Password },
   { path: '/caisse', component: Caisse },
   { path: '/stockage', component: Stockage },
+  { path: '/tablet', component: Tablet },
 ]
 
 const router = createRouter({
@@ -20,10 +22,11 @@ const router = createRouter({
 
 router.beforeEach((to, from) => {
   const store = useStore()
-  if (store?.user && to.path === '/') {
-    return `/${store.type}`
+  const url = store?.user?.name === 'Charge' ? '/stockage' : store?.user?.name === 'Caisse' ? '/caisse' : '/tablet'
+  if (store?.user && (to.path === '/' || to.path === '/password')) {
+    return url
   }
-  if (!store.user && (to.path.includes('caisse') ||  to.path.includes('stockage'))) {
+  if (!store.user && (to.path.includes('caisse') ||  to.path.includes('stockage') ||  to.path.includes('tablet')) ) {
     return '/'
   }
 })
