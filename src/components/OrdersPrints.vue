@@ -12,6 +12,18 @@
 
   const store = useStore()
 
+  const filterDuplicates = (arr) => {
+    const filteredArr = arr.reduce((acc, current) => {
+      const x = acc.find(item => item.bipeur === current.bipeur);
+      if (!x) {
+        return acc.concat([current]);
+      } else {
+        return acc;
+      }
+    }, []);
+    return filteredArr
+  }
+
   const setToPrint = (item, i) => {
     loadingPrint.value = true
     toPrint.value = item
@@ -52,7 +64,7 @@
     <div class="flex flex-col gap-4 mt-8 max-h-64 h-64 overflow-scroll">
       <p v-if="prints.length === 0" class="text-black/50 p-2">Pas de commandes à imprimer</p>
       <button
-        v-for="(item, i) in prints"
+        v-for="(item, i) in filterDuplicates(prints)"
         :key="i"
         class="px-4 py-2 text-xl border border-main text-main bg-notif rounded-md flex items-center justify-between cursor-pointer"
         @click="setToPrint(item, i)"
