@@ -80,7 +80,7 @@ export const useStore = defineStore('main', {
               status: '',
               message: '',
             }
-          }, 3000);
+          }, 5000);
         }
       })
     },

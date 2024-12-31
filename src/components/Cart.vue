@@ -311,18 +311,5 @@
       :livraison="livraison"
       :payType="payType"
     />
-    <div class="py-2 my-2 border border-dotted border-black"></div>
-    <print-item
-      :cart="cart"
-      :subTotal="subTotal"
-      :showPromo="showPromo"
-      :percent="percent"
-      :percentTotal="percentTotal"
-      :pay="pay"
-      :bipeur="bipeur"
-      :type="type"
-      :livraison="livraison"
-      :payType="payType"
-    />
   </div>
 </template>
