@@ -88,19 +88,6 @@
         :livraison="toPrint.livraison"
         :payType="toPrint.payType"
       />
-      <div class="py-2 my-2 border border-dotted border-black"></div>
-      <print-item
-        :cart="toPrint.cart"
-        :subTotal="toPrint.subTotal"
-        :showPromo="toPrint.showPromo"
-        :percent="toPrint.percent"
-        :percentTotal="toPrint.percentTotal"
-        :pay="toPrint.pay"
-        :bipeur="toPrint.bipeur"
-        :type="toPrint.type"
-        :livraison="toPrint.livraison"
-        :payType="toPrint.payType"
-      />
     </div>
   </div>
 </template>

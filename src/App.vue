@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import Swal from 'sweetalert2'
-import SoundNotif from './assets/sounds/comic.mp3'
+import SoundNotif from './assets/sounds/current.mp3'
 
 import { useStore } from "./store"
 
