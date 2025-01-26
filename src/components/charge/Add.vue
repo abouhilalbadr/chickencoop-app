@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import axios from 'axios'
 
 const props = defineProps(['token'])
@@ -8,33 +8,35 @@ const charge = reactive({
   supplier: '',
   product: '',
   price: '',
+  size: '',
 })
 const loading = ref(false)
 const errors = ref({
   supplier: '',
   product: '',
   price: '',
+  size: '',
 })
 
 const suppliers = [
-  'Boulangerie',
-  'Favorita',
-  'Boucherie',
-  'Pesserie',
-  'Gaz',
-  'Huile',
-  'Emballage',
-  'Légumes',
-  'Fruits',
-  'Station d\'essence',
-  'Avance',
-  'Poulet',
-  'Coca-Cola',
-  'Boissons',
-  'Facture Électricité',
-  'Facture Eau',
-  'Facture internet',
-  'Autre',
+  { name: "Boulangerie", value: "Pièce" },
+  { name: "Favorita", value: "Total" },
+  { name: "Boucherie", value: "Kg" },
+  { name: "Pesserie", value: "Total" },
+  { name: "Gaz", value: "Pièce" },
+  { name: "Huile", value: "Litre" },
+  { name: "Emballage", value: "Pièce" },
+  { name: "Légumes", value: "Kg" },
+  { name: "Fruits", value: "Kg" },
+  { name: "Station d'essence", value: "Total" },
+  { name: "Avance", value: "Total" },
+  { name: "Poulet", value: "Kg" },
+  { name: "Coca-Cola", value: "Pièce" },
+  { name: "Boissons", value: "Pièce" },
+  { name: "Facture Électricité", value: "Total" },
+  { name: "Facture Eau", value: "Total" },
+  { name: "Facture internet", value: "Total" },
+  { name: "Autre", value: "Total" },
 ]
 
 const validateInputs = () => {
@@ -51,6 +53,10 @@ const validateInputs = () => {
     isValid = false
     errors.value.price = 'Le montant est requis'
   }
+  if (!charge.size) {
+    isValid = false
+    errors.value.size = 'La quantité est requise'
+  }
   return isValid
 
 }
@@ -66,6 +72,7 @@ const submitCharge = async () => {
         product: charge.product,
         date: new Date(),
         price: parseInt(charge.price),
+        size: parseInt(charge.size),
       },
         {
           headers: {
@@ -83,9 +90,17 @@ const submitCharge = async () => {
   }
 }
 
+const unite = computed(() => {
+  const supplier = suppliers.find(s => s.name === charge.supplier)
+  if (supplier) {
+    return supplier.value
+  }
+  return 'Total'
+})
+
 </script>
 <template>
-  <form @submit.prevent="submitCharge" class="flex flex-col gap-8">
+  <form @submit.prevent="submitCharge" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
     <div class="flex flex-col gap-2">
       <label
         class="px-2" for="supplier"
@@ -104,9 +119,9 @@ const submitCharge = async () => {
         <option
           v-for="(supplier, i) in suppliers"
           :key="i"
-          :value="supplier"
+          :value="supplier.name"
         >
-          {{ supplier }}
+          {{ supplier.name }}
         </option>
       </select>
       <span
@@ -138,6 +153,31 @@ const submitCharge = async () => {
         {{ errors.product }}
       </span>
     </div>
+    <div class="relative flex flex-col gap-2">
+      <label
+        class="px-2" for="size"
+        :class="errors.size ? 'text-red' : 'text-black/50'"
+      >
+        Quantité
+      </label>
+      <input
+        type="text" id="size"
+        class="outline-none w-full px-4 py-2 border rounded-md"
+        :class="errors.size ? 'border-red placeholder:text-red text-red' : 'border-gray'"
+        placeholder="2"
+        v-model="charge.size"
+        @input="errors.size = ''"
+      />
+      <span
+        v-if="errors.size"
+        class="italic text-red text-xs"
+      >
+        {{ errors.size }}
+      </span>
+      <span class="absolute bottom-0 right-0 px-4 py-2 bg-second text-white rounded-md">
+        {{ unite }}
+      </span>
+    </div>
     <div class="flex flex-col gap-2">
       <label
         class="px-2" for="price"
@@ -160,7 +200,7 @@ const submitCharge = async () => {
         {{ errors.price }}
       </span>
     </div>
-    <div class="self-end">
+    <div class="lg:col-span-2 flex justify-end">
       <button type="submit" class="bg-main text-white px-10 py-2 rounded-md hover:bg-main/80 transition disabled:bg-main/50 disabled:cursor-wait flex justify-center items-center" :disabled="loading">
         <span v-if="loading" class="loading"></span>
         <span v-else>Sauvegarder</span>
