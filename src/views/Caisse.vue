@@ -220,7 +220,7 @@ onMounted(() => {
   />
   <main class="grid grid-cols-1 lg:grid-cols-6 gap-6 p-4 w-full min-h-screen">
     <div class="lg:col-span-4 flex flex-col gap-6">
-      <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-9 gap-3">
+      <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
         <food-list
           :food="food"
           :showMenu="showMenu"
