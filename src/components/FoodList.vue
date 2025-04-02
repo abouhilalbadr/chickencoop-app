@@ -15,6 +15,7 @@ import Panini from "./icons/food/Panini.vue";
 import Breakfast from "./icons/food/Breakfast.vue";
 import Dessert from "./icons/food/Dessert.vue";
 import Shawarma from "./icons/food/Shawarma.vue"
+import Plate from "./icons/food/Plate.vue"
 defineProps(['food', 'showMenu'])
 const emit = defineEmits(['active'])
 
@@ -48,6 +49,7 @@ const setActive = (i) => {
     <Breakfast v-if="item.image === 'breakfast'" class="h-8" />
     <Dessert v-if="item.image === 'dessert'" class="h-8" />
     <Shawarma v-if="item.image === 'shawarma'" class="h-8" />
+    <Plate v-if="item.image === 'plate'" class="h-8" />
     <span class="capitalize text-xs">{{ item.name }}</span>
   </button>
 </template>

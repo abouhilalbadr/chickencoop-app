@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import axios from 'axios'
 import VueDatePicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css'
@@ -132,6 +132,18 @@ const resetTotal = () => {
   caisseTotal.value = 0
 }
 
+const adjustDate = () => {
+  const date = new Date();
+  if (date.getHours() < 6) {
+    date.setDate(date.getDate() - 1);
+  }
+  return date;
+};
+
+onMounted(() => {
+  calculation.date = adjustDate()
+})
+
 </script>
 <template>
   <form @submit.prevent="submitCalc" class="flex flex-col gap-8 px-6">
@@ -142,13 +154,16 @@ const resetTotal = () => {
       >
         Date
       </label>
-      <VueDatePicker
+      <!-- <VueDatePicker
         :model-value="formatValue(calculation.date)"
         format="dd/MM/yyyy"
         :min-date="minDate"
         placeholder="Date de jour"
         @update:model-value="getDailyDetails($event)"
-      />
+      /> -->
+      <div class="outline-none w-full px-4 py-2 bg-gray border rounded-md capitalize">
+        {{ new Intl.DateTimeFormat('fr-FR', { dateStyle: 'full' }).format(calculation.date) }}
+      </div>
       <span v-if="errors.date" class="text-red italic text-sm px-2">
         {{ errors.date }}
       </span>
@@ -162,7 +177,7 @@ const resetTotal = () => {
           class="px-2" for="newC"
           :class="errors.newC ? 'text-red' : 'text-black/50'"
         >
-          Nouveau caisse
+          Nouvelle caisse
         </label>
         <input
           type="text" id="newC"
@@ -177,9 +192,9 @@ const resetTotal = () => {
         </span>
       </div>
     </div>
-    <div class="flex flex-col">
-      <label class="px-2 text-black/50" for="daily">
-        Total de caisse
+    <div class="flex flex-col py-4 border border-gray rounded-md p-4">
+      <label class="px-2 text-black/50 text-2xl" for="daily">
+        Calculer le total de la nouvelle caisse
       </label>
       <Money @totalCaisse="calcTotal" @resetCaisse="resetTotal" />
     </div>
