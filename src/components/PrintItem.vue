@@ -89,10 +89,11 @@
           class="flex justify-between gap-2"
         >
           <div class="flex flex-col">
-            <div v-if="item.name.includes('Pizza')">
+            <!-- <div v-if="item.name.includes('Pizza')">
               <h2 class="font-bold">{{ item.name }} <span v-if="item.size" class="">({{ item.size === 'm' ? 'Moyenne' : 'Grande' }})</span></h2>
-            </div>
-            <div v-else>
+            </div> -->
+            <!-- <div v-else> -->
+            <div>
               <h2 class="font-bold">{{ item.name }} <span v-if="item.size" class="uppercase">({{ item.size }})</span></h2>
             </div>
             <p class="flex flex-col gap-1 text-xs pl-2">

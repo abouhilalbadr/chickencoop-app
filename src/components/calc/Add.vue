@@ -33,9 +33,9 @@ const calculateTotal = computed(
   () => ((parseFloat(calculation.daily) || 0) + (parseFloat(calculation.last) || 0)) - (parseFloat(calculation.charges) || 0) - (parseFloat(calculation.newC) || 0)
 )
 
-const formatValue = (item) => {
-  return new Date(item)
-}
+// const formatValue = (item) => {
+//   return new Date(item)
+// }
 
 const getDailyDetails = async (date) => {
   errors.value = {
@@ -119,6 +119,7 @@ const submitCalc = async () => {
       alert("Échec de la création du calculation, veuillez réessayer")
     }
   } catch (error) {
+    console.log(error);
     alert("Échec de la création du calculation, veuillez réessayer")
     loading.value = false
   }
@@ -142,6 +143,7 @@ const adjustDate = () => {
 
 onMounted(() => {
   calculation.date = adjustDate()
+  getDailyDetails(calculation.date)
 })
 
 </script>

@@ -46,9 +46,9 @@ const saveData = () => {
   store.setUnique()
   order.value.name = props.currentFood.name
   order.value.image = props.currentFood.image
-  if (props.currentFood.categoryId == 11) {
-    order.value.size = size.value
-  }
+  // if (props.currentFood.categoryId == 11) {
+  //   order.value.size = size.value
+  // }
   order.value.price = currentPrice.value + plusPrice.value
   order.value.productId = props.currentFood.id
   order.value.mode = 'make-normal'
@@ -103,7 +103,7 @@ const checkSaucesExtras = computed(() => {
               +
             </div>
           </div>
-          <div v-if="currentFood.categoryId == 11">
+          <!-- <div v-if="currentFood.categoryId == 11">
             <h4 class="relative text-xl title text-main mb-6">Les Tailles</h4>
             <div class="flex gap-4">
               <button
@@ -121,7 +121,7 @@ const checkSaucesExtras = computed(() => {
                 L
               </button>
             </div>
-          </div>
+          </div> -->
           <div v-if="checkSaucesExtras && checkSaucesExtras.length > 0" class="flex flex-col gap-4">
             <div class="my-4 flex items-center gap-8">
               <h4
