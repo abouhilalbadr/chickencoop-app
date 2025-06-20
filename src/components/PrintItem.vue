@@ -69,7 +69,7 @@
       <img class="h-32" src="../assets/images/logo-bw.png" alt="Chicken Coop" />
       <h1 class="uppercase text-lg mt-2">Chicken Coop</h1>
       <p class="text-lg">Bab Asfi 2, 24, Marrakech 40170</p>
-      <span class="text-lg ">TEL: 06.24.42.74.06</span>
+      <span class="text-lg ">TEL: 07.04.55.30.88</span>
       <span v-if="type !== 'GLOVO'" class="text-lg ">Bipeur: {{ bipeur }}</span>
       <span class="text-3xl font-bold">{{ getType(type) }} {{ getLivraison(type, livraison) }}</span>
       <span v-if="type === 'GLOVO'" class="text-xl font-bold">{{ payType === 'CASH' ? 'Espèce' : 'Carte bancaire' }}</span>
