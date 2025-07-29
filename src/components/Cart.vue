@@ -1,5 +1,5 @@
 <script setup>
-  import { ref, computed, watch } from "vue"
+  import { ref, computed } from "vue"
   import axios from 'axios'
   import Swal from 'sweetalert2'
 
@@ -19,7 +19,7 @@
 
   const pay = ref('')
   const percent = ref(0)
-  const type = ref('SUR_PLACE')
+  const type = computed(() => store.preOrderType)
   const numModal = ref(false)
   const loading = ref(false)
   const livraison = ref(0)

@@ -61,6 +61,11 @@
     return livraison ? livraison.name : ''
   }
 
+  const showNumber = (item) => {
+    if (item.name.includes('x')) return ''
+    return item.number > 1 ? `${item.number}x ` : ''
+  }
+
 </script>
 
 <template>
@@ -94,7 +99,7 @@
             </div> -->
             <!-- <div v-else> -->
             <div>
-              <h2 class="font-bold">{{ item.name }} <span v-if="item.size" class="uppercase">({{ item.size }})</span></h2>
+              <h2 class="font-bold">{{ showNumber(item) }} {{ item.name }} <span v-if="item.size" class="uppercase">({{ item.size }})</span></h2>
             </div>
             <p class="flex flex-col gap-1 text-xs pl-2">
               <span v-if="item.viandes && item.viandes.length > 0">Les viandes: {{ item.viandes.join(',  ') }}</span>

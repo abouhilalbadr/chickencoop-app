@@ -23,9 +23,14 @@ export const useStore = defineStore('main', {
       },
       unique: 0,
       glovo: false,
+      preorders: [],
+      preOrderType: 'SUR_PLACE'
     }
   },
   actions: {
+    setPreOrderType(type) {
+      this.preOrderType = type
+    },
     setUnique() {
       this.unique += 1
     },
@@ -83,6 +88,19 @@ export const useStore = defineStore('main', {
           }, 5000);
         }
       })
+      this.socket.on('preorder:create', (preorder) => {
+        this.setPreorder(preorder)
+        this.alert.show = true
+        this.alert.status = 'success'
+        this.alert.message = 'Une commande précommande a été ajoutée'
+        setTimeout(() => {
+          this.alert = {
+            show: false,
+            status: '',
+            message: '',
+          }
+        }, 3000);
+      })
     },
     setNotifications(data) {
       this.notifications = data
@@ -101,6 +119,15 @@ export const useStore = defineStore('main', {
     },
     setType(type) {
       this.type = type
+    },
+    setPreorders(data) {
+      this.preorders = data
+    },
+    removePreorder(id) {
+      this.preorders.splice(this.preorders.findIndex(item => item.id === id), 1);
+    },
+    setPreorder(data) {
+      this.preorders.push(data)
     },
     logout() {
       this.user = null

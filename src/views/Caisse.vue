@@ -15,9 +15,11 @@ import Panier from "../components/Cart.vue";
 import OrdersNotif from "../components/OrdersNotif.vue"
 import OrdersPrints from "../components/OrdersPrints.vue"
 import Menu from "../components/icons/food/Menu.vue";
+import PreOrder from "../components/PreOrder.vue";
 
 const store = useStore()
 
+const page = ref('caisse')
 const cart = ref([])
 const tacosModal = ref(false)
 const foodModal = ref(false)
@@ -37,6 +39,15 @@ let settings = reactive([])
 const notifications = computed(() => store.notifications.sort((a, b) => (new Date(b.updatedAt) - new Date(a.updatedAt))))
 const prints = computed(() => store.prints || [])
 const activeFood = computed(() => food.value.find((item) => ( item.active )))
+
+const changePage = (p) => {
+  if (p === 'caisse') {
+    document.body.style.overflow = 'auto'
+  } else if (p === 'preorder') {
+    document.body.style.overflow = 'hidden'
+  }
+  page.value = p
+}
 
 const setActive = (i) => {
   showMenu.value = false
@@ -177,20 +188,63 @@ const getMenu = async () => {
   }
 }
 
+const addProductsToCart = async (order) => {
+  try {
+    const { data } = await axios.put(`/preorder/${order.id}`, {
+      status: 'TERMINEE'
+    }, {
+      headers: {
+        'Authorization': `Bearer ${store.user.accessToken}`
+      }
+    })
+    if (data?.data) {
+      store.setPreOrderType(order.type)
+      store.removePreorder(order.id)
+      if (typeof order.products === 'object') {
+        cart.value.push(...order.products)
+      }
+      else {
+        const items = JSON.parse(order.products)
+        items.map(item => cart.value.push(item))
+      }
+      changePage('caisse')
+    }
+  } catch (error) {
+    console.log(error);
+  }
+}
+
 const updateCart = (e) => {
   cart.value = e
+}
+
+const getPreorders = async () => {
+  try {
+    const { data } = await axios.get('/preorder', {
+      headers: {
+        'Authorization': `Bearer ${store.user.accessToken}`
+      }
+    })
+    if (data?.data.length > 0) {
+      store.setPreorders(data.data)
+    }
+  } catch (error) {
+    console.log(error);
+  }
 }
 
 onMounted(() => {
   store.setUser(store.user)
   getCategories()
   getSettings()
+  getPreorders()
 })
 
 </script>
 
 <template>
-  <Header page="caisse" />
+  <Header page="caisse" @change-page="changePage" />
+  <pre-order v-if="page === 'preorder'" @change-page="changePage" @add-to-cart="addProductsToCart" />
   <food-modal
     v-if="settings.length > 0"
     :currentFood="currentFood"

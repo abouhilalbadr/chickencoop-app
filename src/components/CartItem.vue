@@ -1,8 +1,13 @@
 <script setup>
-  import { ref } from 'vue'
+  import { ref, computed } from 'vue'
 
   const props = defineProps(['item'])
   const hover = ref(false)
+
+  const showNumber = computed(() => {
+    if (props.item.name.includes('x')) return ''
+    return props.item.number > 1 ? `${props.item.number}x ` : ''
+  })
 
 </script>
 
@@ -14,7 +19,7 @@
     <div class="flex items-center gap-4 flex-1">
       <img :src="item.image" :alt="item.name" class="h-12 object-cover rounded-md">
       <div class="flex flex-col gap-2">
-        <h2 class="text-black font-bold font-bree-serif">{{ item.name }} <span v-if="item.size" class="uppercase text-main">({{ item.size }})</span></h2>
+        <h2 class="text-black font-bold font-bree-serif">{{ showNumber }} {{ item.name }} <span v-if="item.size" class="uppercase text-main">({{ item.size }})</span></h2>
         <p class="flex flex-col gap-1 text-black/50 text-xs">
           <span v-if="item.viandes && item.viandes.length > 0">Les viandes: {{ item.viandes.join(',  ') }}</span>
           <span v-if="item.sauces && item.sauces.length > 0">Les sauces: {{ item.sauces.join(', ') }}</span>
