@@ -201,7 +201,7 @@
     if (type.value === value) return
     if (value === 'GLOVO') store.setGlovo(true)
     else store.setGlovo(false)
-    type.value = value
+    store.setPreOrderType(value)
     livraison.value = 0
     freeUser.value = ''
     payType.value = 'CASH'
