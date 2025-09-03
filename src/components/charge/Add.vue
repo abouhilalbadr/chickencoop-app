@@ -39,6 +39,26 @@ const suppliers = [
   { name: "Autre", value: "Total" },
 ]
 
+const products = [
+  "Crème fraîche pro",
+  "cheddar",
+  "Pizzarella premuim bloc",
+  "Pain burger",
+  "Sauce burger",
+  "Ketchup",
+  "Fromage bleu",
+  "Cornichon",
+  "Nugget poulet pané",
+  "Hit sauce",
+  "Cordon bleu pané",
+  "Pain tacos",
+  "Haricot rouge",
+  "Fun fries (frites) 7/7",
+  "Sauce burger",
+  "Sauce Algériene",
+  "Huile piquante"
+]
+
 const validateInputs = () => {
   let isValid = true
   if (!charge.supplier) {
@@ -138,14 +158,22 @@ const unite = computed(() => {
       >
         Produit
       </label>
-      <input
-        type="text" id="product"
+      <select
+        id="supplier"
         class="outline-none w-full px-4 py-2 border rounded-md"
         :class="errors.product ? 'border-red placeholder:text-red text-red' : 'border-gray'"
-        placeholder="Frite"
         v-model="charge.product"
         @input="errors.product = ''"
-      />
+      >
+        <option value="" disabled selected>Choisir un produit</option>
+        <option
+          v-for="(prod, i) in products"
+          :key="i"
+          :value="prod"
+        >
+          {{ prod }}
+        </option>
+      </select>
       <span
         v-if="errors.product"
         class="italic text-red text-xs"
