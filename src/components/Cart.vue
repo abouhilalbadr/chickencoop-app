@@ -96,8 +96,22 @@
   const sendOrder = async (e) => {
     numModal.value = false
     bipeur.value = e
+    const newCart = props.cart.map((item) => {
+      return {
+        image: item.image,
+        index: item.index || 0,
+        mode: item.mode || 'coopbox',
+        name: item.name,
+        number: item.number || item.quantity,
+        price: item.price,
+        productId: item.productId,
+        sauces: item.sauces || [],
+        viandes: item.viandes || [],
+        extras: item.extras || []
+      }
+    })
     let order = {
-      products: JSON.stringify(props.cart),
+      products: JSON.stringify(newCart),
       status: 'EN_ATTENTE',
       type: type.value,
       total: parseFloat((subTotal.value + (livraison.value === -1 ? 0 : livraison.value)) - percentTotal.value),

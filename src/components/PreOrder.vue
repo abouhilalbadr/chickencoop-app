@@ -55,6 +55,7 @@ const jsonProducts = (products) => {
             <button @click="addOrderToCart(item)" class="bg-main text-white px-4 py-2 rounded-md">Ajouter à la caisse</button>
           </div>
         </div>
+        <p v-if="store.preorders.length === 0" class="p-4 text-black/50 text-center">Pas de commandes sur le site Web</p>
       </div>
     </aside>
   </div>

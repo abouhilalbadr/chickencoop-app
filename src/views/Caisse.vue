@@ -214,6 +214,11 @@ const addProductsToCart = async (order) => {
   }
 }
 
+const addItemsToCart = (order) => {
+  store.setPreOrderType("LIVRAISON")
+  order.items.items.map(item => cart.value.push(item))
+}
+
 const updateCart = (e) => {
   cart.value = e
 }
@@ -243,7 +248,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <Header page="caisse" @change-page="changePage" />
+  <Header page="caisse" @change-page="changePage" @add-to-cart="addItemsToCart" />
   <pre-order v-if="page === 'preorder'" @change-page="changePage" @add-to-cart="addProductsToCart" />
   <food-modal
     v-if="settings.length > 0"

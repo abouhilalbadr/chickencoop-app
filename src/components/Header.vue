@@ -5,6 +5,7 @@ import axios from 'axios'
 
 import SettingModal from "../components/SettingModal.vue";
 import TotalModal from "../components/TotalModal.vue";
+import DeliveriesModal from "../components/coopbox/DeliveriesModal.vue";
 
 import Cash from "../components/icons/Cash.vue";
 import Cart from "../components/icons/Cart.vue";
@@ -13,6 +14,7 @@ import Tablet from "../components/icons/Tablet.vue";
 import Settings from "../components/icons/Settings.vue";
 import Preorder from "../components/icons/Preorder.vue";
 import Daily from "../components/icons/Daily.vue";
+import Truck from "../components/icons/Truck.vue";
 
 import { useStore } from "../store"
 
@@ -20,11 +22,13 @@ const store = useStore()
 const router = useRouter()
 
 const props = defineProps(['page'])
-const emit = defineEmits(['change-page'])
+const emit = defineEmits(['change-page', 'add-to-cart'])
 
 const modal = ref(false)
 const showTotal = ref(false)
 const total = ref({})
+const deliveriesModal = ref(false)
+const todayCount = ref(0)
 
 const openModal = () => {
   modal.value = true
@@ -41,6 +45,10 @@ const showTotalModal = async () => {
 
 const closeTotalModal = () => {
   showTotal.value = false
+}
+
+const openDeliveries = () => {
+  deliveriesModal.value = true
 }
 
 const returnBack = () => {
@@ -67,8 +75,27 @@ const getTotal = async () => {
   }
 }
 
+
+const fetchDeliveriesCount = async () => {
+  try {
+    const { data } = await axios.get("/deliveries/kitchen/board?day=today&includeItems=false", {
+      headers: { Authorization: `Bearer ${store.user.accessToken}` },
+    });
+    todayCount.value = data?.counts?.today || 0;
+  } catch {
+    todayCount.value = 0;
+  }
+}
+
+const addproductsToCart = (products) => {
+  deliveriesModal.value = false
+  emit('add-to-cart', products)
+}
+
 // check url and set page
 onMounted(() => {
+  fetchDeliveriesCount();
+  // setInterval(fetchDeliveriesCount, 1000 * 60 * 2); // refresh every 2 min
   if (props.page === 'stockage') {
     store.setType('stockage')
   } else {
@@ -88,6 +115,11 @@ onMounted(() => {
     :totalModal="showTotal"
     @total-close="closeTotalModal"
   />
+  <deliveries-modal
+    :deliveriesModal="deliveriesModal"
+    @deliveriesClose="deliveriesModal = false"
+    @addToCart="addproductsToCart"
+  />
   <header class="px-4 py-2">
       <div class="flex items-center justify-between gap-4">
         <div class="flex items-center gap-4">
@@ -102,6 +134,19 @@ onMounted(() => {
           </div>
         </div>
         <div class="flex items-center gap-8">
+          <button
+            v-if="store.type === 'caisse'"
+            @click="openDeliveries"
+            class="relative text-main h-10 w-10 rounded-md flex justify-center items-center transition-all"
+            title="Livraisons"
+          >
+            <Truck class="h-8 w-8 fill-main" />
+            <span
+              class="absolute -top-2 -right-2 min-w-[1.5rem] h-6 px-1 text-xs bg-third text-black font-bold rounded-full flex justify-center items-center"
+            >
+              {{ todayCount || 0 }}
+            </span>
+          </button>
           <button @click="showTotalModal" class="text-main h-10 w-10 rounded-md flex justify-center items-center">
             <Daily />
           </button>
