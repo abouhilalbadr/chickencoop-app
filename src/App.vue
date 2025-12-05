@@ -9,7 +9,7 @@ const store = useStore()
 const audio = new Audio(SoundNotif)
 
 const showAlert = computed(() => {
-  if (store.alert.show && store.user.name === 'Caisse') {
+  if (store.alert.show && store.type === 'caisse') {
     audio.play()
     return Swal.fire({
       position: 'top-end',
@@ -41,8 +41,8 @@ onMounted(() => {
 </script>
 
 <template>
-<div class="bg-body">
-  <p class="hidden">{{ showAlert }}</p>
-  <router-view></router-view>
-</div>
+  <div class="bg-body">
+    <p class="hidden">{{ showAlert }}</p>
+    <router-view></router-view>
+  </div>
 </template>

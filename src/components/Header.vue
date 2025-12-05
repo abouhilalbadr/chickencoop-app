@@ -94,11 +94,10 @@ const addproductsToCart = (products) => {
 
 // check url and set page
 onMounted(() => {
-  fetchDeliveriesCount();
-  // setInterval(fetchDeliveriesCount, 1000 * 60 * 2); // refresh every 2 min
   if (props.page === 'stockage') {
     store.setType('stockage')
   } else {
+    fetchDeliveriesCount();
     store.setType('caisse')
   }
 })
@@ -106,64 +105,56 @@ onMounted(() => {
 </script>
 
 <template>
-  <setting-modal
-    :settingModal="modal"
-    @settings-close="closeModal"
-  />
-  <total-modal
-    :total="total"
-    :totalModal="showTotal"
-    @total-close="closeTotalModal"
-  />
-  <deliveries-modal
-    :deliveriesModal="deliveriesModal"
-    @deliveriesClose="deliveriesModal = false"
-    @addToCart="addproductsToCart"
-  />
+  <setting-modal :settingModal="modal" @settings-close="closeModal" />
+  <div v-if="store.type === 'caisse'">
+    <total-modal :total="total" :totalModal="showTotal" @total-close="closeTotalModal" />
+    <deliveries-modal :deliveriesModal="deliveriesModal" @deliveriesClose="deliveriesModal = false"
+      @addToCart="addproductsToCart" />
+  </div>
   <header class="px-4 py-2">
-      <div class="flex items-center justify-between gap-4">
-        <div class="flex items-center gap-4">
-          <img src="../assets/images/logo.png" alt="Chicken Coop Logo" class="h-12">
-          <div class="flex items-center gap-2">
-            <Cart v-if="store?.user?.name === 'Charge'" class="h-16 fill-main relative top-1" />
-            <Tablet v-else-if="store?.user?.name === 'Tablet'" class="h-12 fill-main relative top-1" />
-            <Cash v-else class="h-12 fill-main relative top-1" />
-            <span class="text-main font-bree-serif">
-              {{ store?.user?.name || 'Caisse' }}
-            </span>
-          </div>
-        </div>
-        <div class="flex items-center gap-8">
-          <button
-            v-if="store.type === 'caisse'"
-            @click="openDeliveries"
-            class="relative text-main h-10 w-10 rounded-md flex justify-center items-center transition-all"
-            title="Livraisons"
-          >
-            <Truck class="h-8 w-8 fill-main" />
-            <span
-              class="absolute -top-2 -right-2 min-w-[1.5rem] h-6 px-1 text-xs bg-third text-black font-bold rounded-full flex justify-center items-center"
-            >
-              {{ todayCount || 0 }}
-            </span>
-          </button>
-          <button @click="showTotalModal" class="text-main h-10 w-10 rounded-md flex justify-center items-center">
-            <Daily />
-          </button>
-          <button v-if="store.type === 'caisse'" @click="openModal" class="text-main h-10 w-10 rounded-md flex justify-center items-center">
-            <settings />
-          </button>
-          <button v-if="store.type === 'caisse'" @click="updatePage('preorder')" class="relative text-main h-10 w-10 rounded-md flex justify-center items-center">
-            <Preorder />
-            <span class="absolute -top-2 -right-2 w-6 h-6 text-xs bg-third text-black font-bold rounded-full flex justify-center items-center">
-              {{ store.preorders.length }}
-            </span>
-          </button>
-          <button @click="returnBack" class="bg-main flex gap-2 items-center text-white rounded-md px-8 py-3">
-            <lock />
-            <span>Verrouiller</span>
-          </button>
+    <div class="flex items-center justify-between gap-4">
+      <div class="flex items-center gap-4">
+        <img src="../assets/images/logo.png" alt="Chicken Coop Logo" class="h-12">
+        <div class="flex items-center gap-2">
+          <Cart v-if="store?.user?.name === 'Charge'" class="h-16 fill-main relative top-1" />
+          <Tablet v-else-if="store?.user?.name === 'Tablet'" class="h-12 fill-main relative top-1" />
+          <Cash v-else class="h-12 fill-main relative top-1" />
+          <span class="text-main font-bree-serif">
+            {{ store?.user?.name || 'Caisse' }}
+          </span>
         </div>
       </div>
+      <div class="flex items-center gap-8">
+        <button v-if="store.type === 'caisse'" @click="openDeliveries"
+          class="relative text-main h-10 w-10 rounded-md flex justify-center items-center transition-all"
+          title="Livraisons">
+          <Truck class="h-8 w-8 fill-main" />
+          <span
+            class="absolute -top-2 -right-2 min-w-[1.5rem] h-6 px-1 text-xs bg-third text-black font-bold rounded-full flex justify-center items-center">
+            {{ todayCount || 0 }}
+          </span>
+        </button>
+        <button v-if="store.type === 'caisse'" @click="showTotalModal"
+          class="text-main h-10 w-10 rounded-md flex justify-center items-center">
+          <Daily />
+        </button>
+        <button v-if="store.type === 'caisse'" @click="openModal"
+          class="text-main h-10 w-10 rounded-md flex justify-center items-center">
+          <settings />
+        </button>
+        <button v-if="store.type === 'caisse'" @click="updatePage('preorder')"
+          class="relative text-main h-10 w-10 rounded-md flex justify-center items-center">
+          <Preorder />
+          <span
+            class="absolute -top-2 -right-2 w-6 h-6 text-xs bg-third text-black font-bold rounded-full flex justify-center items-center">
+            {{ store.preorders.length }}
+          </span>
+        </button>
+        <button @click="returnBack" class="bg-main flex gap-2 items-center text-white rounded-md px-8 py-3">
+          <lock />
+          <span>Verrouiller</span>
+        </button>
+      </div>
+    </div>
   </header>
 </template>
