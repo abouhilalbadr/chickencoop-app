@@ -1,14 +1,14 @@
 {
   "build": {
-    "beforeDevCommand": "yarn dev",
-    "beforeBuildCommand": "yarn build",
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build",
     "devPath": "http://localhost:1420",
     "distDir": "../dist",
     "withGlobalTauri": false
   },
   "package": {
     "productName": "chickencoop",
-    "version": "1.0.45"
+    "version": "1.0.46"
   },
   "tauri": {
     "allowlist": {
