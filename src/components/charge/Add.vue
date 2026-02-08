@@ -160,14 +160,17 @@ onMounted(() => {
       <label class="px-2" for="product" :class="errors.product ? 'text-red' : 'text-black/50'">
         Produit
       </label>
-      <select id="supplier" class="outline-none w-full px-4 py-2 border rounded-md"
+      <!-- <select id="supplier" class="outline-none w-full px-4 py-2 border rounded-md"
         :class="errors.product ? 'border-red placeholder:text-red text-red' : 'border-gray'" v-model="charge.product"
         @input="errors.product = ''">
         <option value="" disabled selected>Choisir un produit</option>
         <option v-for="(prod, i) in products" :key="i" :value="prod.name">
           {{ prod.name }}
         </option>
-      </select>
+      </select> -->
+      <input type="text" id="product" class="outline-none w-full px-4 py-2 border rounded-md"
+        :class="errors.product ? 'border-red placeholder:text-red text-red' : 'border-gray'" placeholder="Produit"
+        v-model="charge.product" @input="errors.product = ''" />
       <span v-if="errors.product" class="italic text-red text-xs">
         {{ errors.product }}
       </span>

@@ -15,7 +15,8 @@ const router = useRouter()
 const loading = ref(false)
 const users = ref([])
 const login = reactive({
-  email: store.type === 'stockage' ? 'charge@chickencoop.ma' : store.type === 'tablet' ? 'tablet@chickencoop.ma' : '',
+  // email: store.type === 'stockage' ? 'charge@chickencoop.ma' : store.type === 'tablet' ? 'tablet@chickencoop.ma' : '',
+  email: 'caisse@chickencoop.ma',
   password: ''
 })
 
@@ -91,14 +92,14 @@ onMounted(async () => {
         <span class="text-white font-bree-serif font-bold text-3xl">Tablet</span>
       </div>
     </div>
-    <div v-if="store.type === 'caisse'" class="min-w-[600px] rounded-md flex items-center">
+    <!-- <div v-if="store.type === 'caisse'" class="min-w-[600px] rounded-md flex items-center">
       <select v-model="login.email"
         class="col-span-5 px-4 text-2xl bg-gray tracking-wider focus:outline-none w-full rounded-md h-24">
         <option v-for="(user, i) in users" :key="i" :value="user.email">
           {{ user.name }}
         </option>
       </select>
-    </div>
+    </div> -->
     <div class="min-w-[600px] max-w-sm mx-auto flex items-center">
       <div
         class="keyboard grid grid-cols-4 grid-rows-6 gap-1 p-1 w-full h-[450px] font-bold rounded-md ring-2 ring-white/20 shadow text-white select-none">
