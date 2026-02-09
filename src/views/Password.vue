@@ -15,8 +15,8 @@ const router = useRouter()
 const loading = ref(false)
 const users = ref([])
 const login = reactive({
-  // email: store.type === 'stockage' ? 'charge@chickencoop.ma' : store.type === 'tablet' ? 'tablet@chickencoop.ma' : '',
-  email: 'caisse@chickencoop.ma',
+  email: store.type === 'stockage' ? 'charge@chickencoop.ma' : store.type === 'tablet' ? 'tablet@chickencoop.ma' : 'caisse@chickencoop.ma',
+  // email: 'caisse@chickencoop.ma',
   password: ''
 })
 
