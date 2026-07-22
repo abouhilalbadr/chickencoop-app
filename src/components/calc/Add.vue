@@ -5,8 +5,12 @@ import VueDatePicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css'
 
 import Money from '../MoneyAll.vue';
+import { businessDay, shiftBusinessDay, dayToDate, dateToDay, formatDay } from '../../businessDay';
 
 const props = defineProps(['token'])
+
+// How many days back the API lets a non-admin file a close (BACKFILL_WINDOW_DAYS)
+const BACKFILL_WINDOW_DAYS = 1
 
 const calculation = reactive({
   date: '',
@@ -18,7 +22,11 @@ const calculation = reactive({
 })
 const loading = ref(false)
 const loadingCalc = ref(false)
-const minDate = new Date('05/30/2024')
+// The picker is bounded to the window the API accepts: the current business day,
+// or the one before it when the books are only closed the next morning.
+const today = ref(businessDay())
+const minDate = computed(() => dayToDate(shiftBusinessDay(today.value, -BACKFILL_WINDOW_DAYS)))
+const maxDate = computed(() => dayToDate(today.value))
 const caisseTotal = ref(0)
 const errors = ref({
   date: '',
@@ -33,11 +41,16 @@ const calculateTotal = computed(
   () => ((parseFloat(calculation.daily) || 0) + (parseFloat(calculation.last) || 0)) - (parseFloat(calculation.charges) || 0) - (parseFloat(calculation.newC) || 0)
 )
 
-// const formatValue = (item) => {
-//   return new Date(item)
-// }
+// Date the picker shows, derived from the business day being closed
+const pickedDate = computed(() => (calculation.date ? dayToDate(calculation.date) : null))
 
-const getDailyDetails = async (date) => {
+const onDatePicked = (value) => {
+  if (!value) return
+  getDailyDetails(dateToDay(value))
+}
+
+// `day` is a 'YYYY-MM-DD' business day key, not a timestamp
+const getDailyDetails = async (day) => {
   errors.value = {
     date: '',
     total: '',
@@ -47,22 +60,23 @@ const getDailyDetails = async (date) => {
     newC: '',
   }
   loadingCalc.value = true
-  const currentDay = new Date(date)
-  calculation.date = currentDay
-  if (currentDay.getFullYear() < 2023) return false
+  calculation.date = day
   try {
     const { data } = await axios.post('/calculations/daily', {
-      date: new Date(date)
+      date: day
     }, {
       headers: {
         'Authorization': `Bearer ${props.token}`
       }
     })
+    // The server decides which day this really is; follow it
+    if (data.data.day) calculation.date = data.data.day
     calculation.charges = data.data.charges
     calculation.daily = data.data.daily
     calculation.last = data.data.last
     loadingCalc.value = false
   } catch (error) {
+    errors.value.date = error?.response?.data?.message || "Impossible de charger le total de cette date"
     loadingCalc.value = false
   }
 }
@@ -102,7 +116,9 @@ const submitCalc = async () => {
         daily: calculation.daily,
         total: calculateTotal.value,
         charges: calculation.charges,
-        date: new Date(calculation.date),
+        // Send the business day key as-is: wrapping it in a Date would turn it
+        // back into an instant and reintroduce the timezone shift
+        date: calculation.date,
         last: parseFloat(calculation.last),
         newC: parseFloat(calculation.newC),
       },
@@ -133,17 +149,8 @@ const resetTotal = () => {
   caisseTotal.value = 0
 }
 
-const adjustDate = () => {
-  const date = new Date();
-  if (date.getHours() < 6) {
-    date.setDate(date.getDate() - 1);
-  }
-  return date;
-};
-
 onMounted(() => {
-  calculation.date = adjustDate()
-  getDailyDetails(calculation.date)
+  getDailyDetails(today.value)
 })
 
 </script>
@@ -156,16 +163,19 @@ onMounted(() => {
       >
         Date
       </label>
-      <!-- <VueDatePicker
-        :model-value="formatValue(calculation.date)"
+      <VueDatePicker
+        :model-value="pickedDate"
         format="dd/MM/yyyy"
         :min-date="minDate"
+        :max-date="maxDate"
+        :enable-time-picker="false"
+        auto-apply
         placeholder="Date de jour"
-        @update:model-value="getDailyDetails($event)"
-      /> -->
-      <div class="outline-none w-full px-4 py-2 bg-gray border rounded-md capitalize">
-        {{ new Intl.DateTimeFormat('fr-FR', { dateStyle: 'full' }).format(calculation.date) }}
-      </div>
+        @update:model-value="onDatePicked"
+      />
+      <span v-if="calculation.date" class="px-2 text-sm text-black/50 capitalize">
+        {{ formatDay(calculation.date) }}
+      </span>
       <span v-if="errors.date" class="text-red italic text-sm px-2">
         {{ errors.date }}
       </span>
