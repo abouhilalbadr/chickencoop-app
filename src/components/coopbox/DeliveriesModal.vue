@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed } from "vue";
+import { ref, watch, computed } from "vue";
 import axios from "axios";
 import Swal from "sweetalert2";
 import Modal from "../Modal.vue";
@@ -116,7 +116,12 @@ const tomorrowDeliveries = computed(() => deliveries.value.tomorrow || []);
 
 const closeModal = () => emit("deliveriesClose");
 
-onMounted(fetchDeliveries);
+// Only load deliveries when the modal is actually opened — never on mount.
+// On the stockage page this component briefly mounts (store.type defaults to
+// 'caisse'), and STOCK has no deliveries permission, so an eager fetch 403s.
+watch(() => props.deliveriesModal, (open) => {
+  if (open) fetchDeliveries();
+});
 </script>
 
 <template>

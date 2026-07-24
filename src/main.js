@@ -15,8 +15,13 @@ axios.defaults.baseURL = baseUrl + '/api/v1'
 axios.interceptors.response.use(
   response => response,
   error => {
-    window.location.href = '/';
-    localStorage.removeItem('user')
+    // Only force re-login on a genuine auth failure (expired/invalid token).
+    // Other errors (400 validation, 403, 500, network blips) must NOT wipe the session.
+    if (error?.response?.status === 401) {
+      localStorage.removeItem('user')
+      window.location.hash = '#/'
+    }
+    return Promise.reject(error)
   });
 
 createApp(App)
