@@ -18,6 +18,7 @@ const make = reactive(JSON.parse(props.settings[0].make || ''))
 const plusPrice = ref(0)
 const size = ref('m')
 const order = ref({})
+const note = ref('')
 
 const addSize = (s) => {
   size.value = s
@@ -64,10 +65,12 @@ const saveData = () => {
   order.value.price = (store.glovo ? parseInt(make[size.value].priceGlovo) : parseInt(make[size.value].price)) + plusPrice.value
   order.value.productId = 0
   order.value.mode = 'make-tacos'
+  order.value.note = note.value.trim()
   emit('sendData', order.value)
   emit('tacosClose')
   size.value = 'm'
   plusPrice.value = 0
+  note.value = ''
   order.value = {}
   emit('changeStep', 'reset')
 }
@@ -129,6 +132,13 @@ const saveData = () => {
             <sauce class="my-8" :settings="settings" @save-sauces="addSauces" />
             <h4 class="relative text-2xl title text-main">Les Extras</h4>
             <extra class="my-8" :settings="settings" @save-extras="addExtras" />
+            <h4 class="relative text-2xl title text-main">Note</h4>
+            <textarea
+              v-model="note"
+              rows="2"
+              placeholder="Ex: sans oignon, allergie..."
+              class="my-8 w-full border border-border rounded-md p-2 text-lg text-main outline-none resize-none"
+            ></textarea>
           </template>
         </Stepper>
       </div>

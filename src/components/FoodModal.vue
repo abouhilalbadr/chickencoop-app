@@ -13,6 +13,7 @@ const show = ref('sauce')
 const size = ref('m')
 const plusPrice = ref(0)
 const number = ref(1)
+const note = ref('')
 const props = defineProps(['currentFood', 'foodModal', 'settings'])
 const emit = defineEmits(['sendData', 'foodClose'])
 const currentPrice = computed(() => store.glovo ? props.currentFood.priceGlovo : props.currentFood.price)
@@ -54,12 +55,14 @@ const saveData = () => {
   order.value.mode = 'make-normal'
   order.value.number = number.value
   order.value.index = number.value > 1 ? store.unique : 0
+  order.value.note = note.value.trim()
   emit('sendData', order.value)
   emit('foodClose')
   show.value = 'sauce'
   plusPrice.value = 0
   number.value = 1
   size.value = 'm'
+  note.value = ''
   order.value = {}
 }
 
@@ -143,6 +146,15 @@ const checkSaucesExtras = computed(() => {
             </div>
             <sauce v-show="(checkSaucesExtras.includes('Les sauces') && show === 'sauce')" :settings="settings" @save-sauces="addSauces" />
             <extra v-show="(checkSaucesExtras.includes('Les extras') && show === 'extra')" :settings="settings" @save-extras="addExtras" />
+          </div>
+          <div class="flex flex-col gap-2">
+            <h4 class="relative text-2xl title text-main">Note</h4>
+            <textarea
+              v-model="note"
+              rows="2"
+              placeholder="Ex: sans oignon, allergie..."
+              class="mt-2 border border-border rounded-md p-2 text-lg text-main outline-none resize-none"
+            ></textarea>
           </div>
         </div>
       </div>

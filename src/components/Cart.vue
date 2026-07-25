@@ -107,7 +107,8 @@ const sendOrder = async (e) => {
       productId: item.productId,
       sauces: item.sauces || [],
       viandes: item.viandes || [],
-      extras: item.extras || []
+      extras: item.extras || [],
+      note: item.note || ''
     }
   })
   let order = {
@@ -200,6 +201,9 @@ const formatCart = (arr) => {
           productId: currentProduct.productId,
           mode: currentProduct.mode,
           sauces: currentProduct.sauces,
+          viandes: currentProduct.viandes,
+          extras: currentProduct.extras,
+          note: currentProduct.note,
           index: currentProduct.index,
           number: currentProduct.number
         })

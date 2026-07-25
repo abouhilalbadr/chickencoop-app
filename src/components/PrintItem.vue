@@ -44,6 +44,9 @@
             productId: currentProduct.productId,
             mode: currentProduct.mode,
             sauces: currentProduct.sauces,
+            viandes: currentProduct.viandes,
+            extras: currentProduct.extras,
+            note: currentProduct.note,
             index: currentProduct.index,
             number: currentProduct.number
           })
@@ -105,6 +108,7 @@
               <span v-if="item.viandes && item.viandes.length > 0">Les viandes: {{ item.viandes.join(',  ') }}</span>
               <span v-if="item.sauces && item.sauces.length > 0">Les sauces: {{ item.sauces.join(', ') }}</span>
               <span v-if="item.extras && item.extras.length > 0">Les extras: {{ item.extras.join(', ') }}</span>
+              <span v-if="item.note" class="font-bold">Note: {{ item.note }}</span>
             </p>
           </div>
           <span class="text-xl font-bold">{{ parseFloat(item.price).toFixed(2) }}</span>

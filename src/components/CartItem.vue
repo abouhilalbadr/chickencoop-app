@@ -24,6 +24,7 @@
           <span v-if="item.viandes && item.viandes.length > 0">Les viandes: {{ item.viandes.join(',  ') }}</span>
           <span v-if="item.sauces && item.sauces.length > 0">Les sauces: {{ item.sauces.join(', ') }}</span>
           <span v-if="item.extras && item.extras.length > 0">Les extras: {{ item.extras.join(', ') }}</span>
+          <span v-if="item.note" class="text-[red] font-bold">Note: {{ item.note }}</span>
         </p>
       </div>
     </div>
