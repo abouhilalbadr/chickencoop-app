@@ -27,7 +27,8 @@
       if (item && item.index) {
         productsIndexs.push(item.index)
       } else {
-        finalFormat.push(item)
+        // ungrouped rows are always one unit — never let a stale `number` claim more
+        finalFormat.push({ ...item, number: 1 })
       }
     });
     const counts = {};
@@ -38,7 +39,7 @@
         const currentProduct = arr.find(item => item.index === parseInt(key))
         if (currentProduct.productId && currentProduct.productId > 0) {
           finalFormat.push({
-            name: (el > 1 ? el + "x " : '') + currentProduct.name,
+            name: currentProduct.name,
             image: currentProduct.image,
             price: el * currentProduct.price,
             productId: currentProduct.productId,
@@ -48,7 +49,7 @@
             extras: currentProduct.extras,
             note: currentProduct.note,
             index: currentProduct.index,
-            number: currentProduct.number
+            number: el
           })
         } else {
           finalFormat.push(currentProduct)
@@ -65,7 +66,6 @@
   }
 
   const showNumber = (item) => {
-    if (item.name.includes('x')) return ''
     return item.number > 1 ? `${item.number}x ` : ''
   }
 

@@ -5,7 +5,6 @@
   const hover = ref(false)
 
   const showNumber = computed(() => {
-    if (props.item.name.includes('x')) return ''
     return props.item.number > 1 ? `${props.item.number}x ` : ''
   })
 
