@@ -3,6 +3,7 @@ import { ref, computed } from "vue"
 import Modal from "./Modal.vue";
 import Sauce from "./Sauce.vue";
 import Extra from "./Extra.vue";
+import Viande from "./Viande.vue";
 
 import { useStore } from "../store"
 
@@ -35,6 +36,9 @@ const addSauces = ({sauces, price, operation}) => {
     plusPrice.value += parseInt(price)
   if (operation === 'minus' && sauces.length >= 2)
     plusPrice.value -= parseInt(price)
+}
+const addViandes = ({viandes}) => {
+  order.value.viandes = viandes
 }
 const addExtras = ({extras, price, operation}) => {
   order.value.extras = extras
@@ -75,9 +79,15 @@ const decrease = () => {
   }
 }
 
+// Per-product meat picker, off by default on every existing product
+const hasViandes = computed(() => Boolean(props.currentFood.viandes))
+const viandesMax = computed(() => parseInt(props.currentFood.viandesMax) || 1)
+
 const checkSaucesExtras = computed(() => {
   const newData = JSON.parse(props.currentFood.attributes)
-  if (!newData.includes('Les sauces')) {
+  if (hasViandes.value) {
+    show.value = 'viande'
+  } else if (!newData.includes('Les sauces')) {
     show.value = 'extra'
   } else {
     show.value = 'sauce'
@@ -125,8 +135,16 @@ const checkSaucesExtras = computed(() => {
               </button>
             </div>
           </div> -->
-          <div v-if="checkSaucesExtras && checkSaucesExtras.length > 0" class="flex flex-col gap-4">
+          <div v-if="(checkSaucesExtras && checkSaucesExtras.length > 0) || hasViandes" class="flex flex-col gap-4">
             <div class="my-4 flex items-center gap-8">
+              <h4
+                v-if="hasViandes"
+                class="relative text-2xl cursor-pointer"
+                :class="show === 'viande' && 'title text-main'"
+                @click="show = 'viande'"
+              >
+                Les viandes
+              </h4>
               <h4
                 v-if="checkSaucesExtras.includes('Les sauces')"
                 class="relative text-2xl cursor-pointer"
@@ -143,6 +161,10 @@ const checkSaucesExtras = computed(() => {
               >
                 Les extras
               </h4>
+            </div>
+            <div v-show="hasViandes && show === 'viande'" class="flex flex-col gap-2">
+              <span class="text-sm text-black/60">Veuillez sélectionner un maximum de {{ viandesMax }} viande(s)</span>
+              <viande :settings="settings" :max="viandesMax" @save-viandes="addViandes" />
             </div>
             <sauce v-show="(checkSaucesExtras.includes('Les sauces') && show === 'sauce')" :settings="settings" @save-sauces="addSauces" />
             <extra v-show="(checkSaucesExtras.includes('Les extras') && show === 'extra')" :settings="settings" @save-extras="addExtras" />
