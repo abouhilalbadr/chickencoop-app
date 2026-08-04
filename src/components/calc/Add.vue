@@ -5,6 +5,8 @@ import VueDatePicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css'
 
 import Money from '../MoneyAll.vue';
+import Amount from '../ui/Money.vue';
+import AppButton from '../ui/AppButton.vue';
 import { businessDay, shiftBusinessDay, dayToDate, dateToDay, formatDay } from '../../businessDay';
 
 const props = defineProps(['token'])
@@ -28,6 +30,11 @@ const today = ref(businessDay())
 const minDate = computed(() => dayToDate(shiftBusinessDay(today.value, -BACKFILL_WINDOW_DAYS)))
 const maxDate = computed(() => dayToDate(today.value))
 const caisseTotal = ref(0)
+// The counter lives in its own card; the section header drives its reset
+const moneyRef = ref(null)
+// Counting the drawer fills Nouvelle caisse on its own. Typing in the field
+// takes over — the two were the same number entered twice before.
+const manualNewC = ref(false)
 const errors = ref({
   date: '',
   total: '',
@@ -43,6 +50,13 @@ const calculateTotal = computed(
 
 // Date the picker shows, derived from the business day being closed
 const pickedDate = computed(() => (calculation.date ? dayToDate(calculation.date) : null))
+
+// The control writes the day out in French itself — vue-datepicker's own
+// `EEEE d MMMM` tokens render in English whatever `locale` says.
+const formatPicked = (date) => {
+  const label = formatDay(dateToDay(date))
+  return label.charAt(0).toUpperCase() + label.slice(1)
+}
 
 const onDatePicked = (value) => {
   if (!value) return
@@ -143,10 +157,22 @@ const submitCalc = async () => {
 
 const calcTotal = (total) => {
   caisseTotal.value = total
+  if (!manualNewC.value) {
+    calculation.newC = total
+    errors.value.newC = ''
+  }
 }
 
 const resetTotal = () => {
   caisseTotal.value = 0
+  if (!manualNewC.value) calculation.newC = 0
+}
+
+// Hand the count back the field when it has been typed over
+const useCounted = () => {
+  manualNewC.value = false
+  calculation.newC = caisseTotal.value
+  errors.value.newC = ''
 }
 
 onMounted(() => {
@@ -155,66 +181,100 @@ onMounted(() => {
 
 </script>
 <template>
-  <form @submit.prevent="submitCalc" class="flex flex-col gap-8 px-6">
-    <div class="flex flex-col gap-2">
-      <label
-        class="px-2" for="date"
-        :class="errors.date ? 'text-red' : 'text-black/50'"
-      >
-        Date
-      </label>
-      <VueDatePicker
-        :model-value="pickedDate"
-        format="dd/MM/yyyy"
-        :min-date="minDate"
-        :max-date="maxDate"
-        :enable-time-picker="false"
-        auto-apply
-        placeholder="Date de jour"
-        @update:model-value="onDatePicked"
-      />
-      <span v-if="calculation.date" class="px-2 text-sm text-black/50 capitalize">
-        {{ formatDay(calculation.date) }}
-      </span>
-      <span v-if="errors.date" class="text-red italic text-sm px-2">
-        {{ errors.date }}
-      </span>
+  <!-- With the day's figures off the screen, the close is one job: count the
+       drawer for a given day and file it. So it is one card — the day chosen in
+       its header, the count in its body, the result in its footer — instead of
+       a lone date tile floating over a second box. -->
+  <form @submit.prevent="submitCalc" class="relative flex flex-col gap-4">
+    <div v-if="loadingCalc" class="absolute z-30 inset-0 bg-white/70 flex justify-center items-center">
+      <span class="loading !text-main"></span>
     </div>
-    <div class="relative flex flex-col gap-8" :class="loadingCalc ? 'p-4' : ''">
-      <div v-if="loadingCalc" class="absolute z-30 inset-0 bg-black/50 flex justify-center items-center">
-        <span class="loading"></span>
-      </div>
-      <div class="flex flex-col gap-2">
-        <label
-          class="px-2" for="newC"
-          :class="errors.newC ? 'text-red' : 'text-black/50'"
-        >
-          Nouvelle caisse
-        </label>
-        <input
-          type="text" id="newC"
-          class="outline-none w-full px-4 py-2 bg-gray-light border rounded-md"
-          :class="errors.newC ? 'border-red placeholder:text-red text-red' : 'border-gray-dark'"
-          placeholder="200"
-          v-model="calculation.newC"
-          @input="errors.newC = ''"
+
+    <!-- A toolbar, not a second card header: the panel around this already says
+         what the screen is, and a bordered card inside a bordered card doubled
+         every rule on the page. -->
+    <div class="flex flex-wrap items-center gap-x-4 gap-y-3">
+      <!-- One control, not a label plus a short date plus the same date written
+           out: the picker itself shows the French day through `format`. -->
+      <div class="w-72">
+        <!-- Teleported: the panel around this clips its overflow, which cut the
+             calendar off at the card's edge. -->
+        <VueDatePicker
+          :model-value="pickedDate"
+          :format="formatPicked"
+          :min-date="minDate"
+          :max-date="maxDate"
+          :enable-time-picker="false"
+          :clearable="false"
+          auto-apply
+          teleport="body"
+          placeholder="Choisir la journée"
+          locale="fr"
+          @update:model-value="onDatePicked"
         />
-        <span v-if="errors.newC" class="text-red italic text-sm px-2">
-          {{ errors.newC }}
-        </span>
       </div>
-    </div>
-    <div class="flex flex-col py-4 border border-gray rounded-md p-4">
-      <label class="px-2 text-black/50 text-2xl" for="daily">
-        Calculer le total de la nouvelle caisse
-      </label>
-      <Money @totalCaisse="calcTotal" @resetCaisse="resetTotal" />
-    </div>
-    <div class="self-end">
-      <button type="submit" class="bg-main text-white px-10 py-2 rounded-md hover:bg-main/80 transition disabled:bg-main/50 disabled:cursor-wait flex justify-center items-center" :disabled="loading">
-        <span v-if="loading" class="loading"></span>
-        <span v-else>Sauvegarder</span>
+
+      <button
+        type="button"
+        class="ml-auto text-[13px] text-black/55 underline underline-offset-2 hover:text-danger"
+        @click="moneyRef?.reset()"
+      >
+        Réinitialiser le comptage
       </button>
+      <p v-if="errors.date" class="w-full text-danger text-[13px]">{{ errors.date }}</p>
     </div>
+
+    <section>
+      <Money ref="moneyRef" :show-summary="false" @totalCaisse="calcTotal" @resetCaisse="resetTotal" />
+
+      <!-- Everything the count produces, in one band: what was counted, the
+           figure it fills, and what that leaves to file. -->
+      <footer class="mt-4 px-4 py-4 rounded-xl border border-border bg-gray-light flex flex-wrap items-center gap-x-6 gap-y-4">
+        <!-- The counted total and Nouvelle caisse were the same figure printed
+             twice. Only the field survives: it is what gets filed, and the count
+             writes straight into it. -->
+        <div class="flex items-center gap-3">
+          <label
+            class="text-[11px] font-bold uppercase tracking-[.07em]" for="newC"
+            :class="errors.newC ? 'text-danger' : 'text-black/50'"
+          >
+            Nouvelle caisse
+          </label>
+          <div class="relative">
+            <input
+              type="text" id="newC"
+              class="h-14 w-48 pl-4 pr-14 border rounded-lg outline-none tabular-nums font-bree-serif text-2xl bg-white
+                focus:border-main focus:ring-[3px] focus:ring-main/[.15]"
+              :class="errors.newC ? 'border-danger' : 'border-border'"
+              placeholder="0"
+              v-model="calculation.newC"
+              @input="manualNewC = true; errors.newC = ''"
+            />
+            <span class="absolute top-1/2 right-4 -translate-y-1/2 text-black/45">DH</span>
+          </div>
+        </div>
+
+        <div class="ml-auto flex items-center gap-5 lg:pl-6 lg:border-l border-border">
+          <div class="flex flex-col gap-0.5">
+            <span class="text-[11px] font-bold uppercase tracking-[.07em] text-black/50">Total calculé</span>
+            <Amount :key="calculateTotal" class="animate-pop" :value="calculateTotal" size="hero" tone="brand" :decimals="false" />
+          </div>
+          <AppButton type="submit" variant="primary" size="xl" :loading="loading">Sauvegarder</AppButton>
+        </div>
+
+        <p v-if="errors.newC" class="w-full text-danger text-[13px] -mt-1">{{ errors.newC }}</p>
+
+        <!-- Said once, only when the two have been allowed to drift apart -->
+        <p
+          v-if="manualNewC && Number(calculation.newC) !== caisseTotal"
+          class="w-full rounded-lg bg-yellow/[.18] px-3 py-2 text-[13px] text-[#7a5c00] flex flex-wrap items-center gap-3"
+        >
+          <span>Nouvelle caisse a été saisie à la main et ne suit plus le comptage.</span>
+          <button type="button" class="underline underline-offset-2 font-medium" @click="useCounted">
+            Utiliser le total compté ({{ caisseTotal.toLocaleString('fr-FR') }} DH)
+          </button>
+        </p>
+      </footer>
+    </section>
   </form>
 </template>

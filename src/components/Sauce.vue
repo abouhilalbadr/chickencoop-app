@@ -1,5 +1,6 @@
 <script setup>
 import { ref, reactive } from "vue"
+import OptionChip from "./ui/OptionChip.vue"
 
 const selectedSauce = ref([])
 const emit = defineEmits(['saveSauces'])
@@ -7,7 +8,6 @@ const props = defineProps(['settings'])
 
 const more = reactive(JSON.parse(props.settings[0]?.more))
 const sauces = more.sauces.items
-
 
 const toggleSauce = (sauce) => {
   const index = selectedSauce.value.indexOf(sauce);
@@ -17,17 +17,16 @@ const toggleSauce = (sauce) => {
     selectedSauce.value.push(sauce)
   emit('saveSauces', {sauces: selectedSauce.value, price: more.sauces.price, operation: (index > -1 ? 'minus' : 'plus')})
 }
-
 </script>
+
 <template>
-  <div class="flex items-center flex-wrap gap-4">
-      <button
-        v-for="(sauce, i) in sauces"
-        class="rounded-md border border-main px-6 py-1 font-bold first-letter:capitalize"
-        :class="selectedSauce.includes(sauce) ? 'bg-main text-white' : 'text-main'"
-        @click="toggleSauce(sauce)"
-      >
-        {{ sauce }}
-      </button>
-    </div>
+  <div class="flex items-center flex-wrap gap-2.5">
+    <OptionChip
+      v-for="(sauce, i) in sauces"
+      :key="i"
+      :label="sauce"
+      :selected="selectedSauce.includes(sauce)"
+      @click="toggleSauce(sauce)"
+    />
+  </div>
 </template>

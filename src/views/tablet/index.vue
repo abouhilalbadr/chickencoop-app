@@ -14,6 +14,7 @@ import MenuModal from "../../components/MenuModal.vue";
 import Panier from "../../components/Cart.vue";
 import OrdersNotif from "../../components/OrdersNotif.vue"
 import Menu from "../../components/icons/food/Menu.vue";
+import CategoryTile from "../../components/ui/CategoryTile.vue";
 
 const store = useStore()
 
@@ -215,48 +216,47 @@ onMounted(() => {
     @change-step="stepChanger"
     @tacos-close="closeTacosModal"
   />
-  <main class="grid grid-cols-1 lg:grid-cols-6 gap-6 p-4 w-full min-h-screen">
-    <div class="lg:col-span-4 flex flex-col gap-6">
-      <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-9 gap-3">
+  <main class="grid grid-cols-1 lg:grid-cols-12 gap-4 p-4 items-start">
+    <div class="lg:col-span-7 xl:col-span-8 flex flex-col gap-4">
+      <nav class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5">
         <food-list
           :food="food"
           :showMenu="showMenu"
           @active="setActive"
         />
-        <button
-          class="border border-border rounded-md px-2 py-2 hover:bg-third hover:border-third transition-all flex flex-col justify-center items-center"
-          :class="showMenu && 'bg-third'"
-          @click="getMenu"
-        >
-          <Menu class="h-8" />
-          <span class="text-xs">Menu</span>
-        </button>
-      </div>
-      <div class="overflow-scroll px-2">
-        <div v-if="showMenu" class="pt-2 pb-16 grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card
-            v-for="(item, i) in menu"
-            :key="i"
-            :item="item"
-            @click="setCurrentMenu(i)"
-          />
+        <category-tile label="Menu" :active="showMenu" @click="getMenu">
+          <Menu class="h-8" :class="showMenu ? 'fill-white' : 'fill-main'" />
+        </category-tile>
+      </nav>
+
+      <section class="bg-white border border-black/[.07] rounded-xl shadow-sm overflow-hidden">
+        <div class="max-h-[calc(100vh-200px)] overflow-y-auto p-4">
+          <div v-if="showMenu" class="grid grid-cols-2 lg:grid-cols-3 gap-4">
+            <Card
+              v-for="(item, i) in menu"
+              :key="i"
+              :item="item"
+              @click="setCurrentMenu(i)"
+            />
+          </div>
+          <div v-else class="grid grid-cols-2 lg:grid-cols-3 gap-4">
+            <Card
+              v-for="(item, i) in allFood[activeFood?.image]"
+              :key="i"
+              :item="item"
+              @click="setCurrent(i)"
+            />
+            <add-button
+              v-if="activeFood?.image === 'tacos'"
+              title="Composer votre Tacos"
+              @open-modal="openTacosModal"
+            />
+          </div>
         </div>
-        <div v-else class="pt-2 pb-16 grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card
-            v-for="(item, i) in allFood[activeFood?.image]"
-            :key="i"
-            :item="item"
-            @click="setCurrent(i)"
-          />
-          <add-button
-            v-if="activeFood?.image === 'tacos'"
-            title="Composer votre Tacos"
-            @open-modal="openTacosModal"
-          />
-        </div>
-      </div>
+      </section>
     </div>
-    <div class="lg:col-span-2 flex flex-col gap-6">
+
+    <div class="lg:col-span-5 xl:col-span-4 lg:sticky lg:top-20">
       <panier :cart="cart" @cart-del="delFromCart" @update-cart="updateCart" page="tablet" />
     </div>
   </main>

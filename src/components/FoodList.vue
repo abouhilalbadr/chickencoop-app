@@ -18,43 +18,54 @@ import Shawarma from "./icons/food/Shawarma.vue"
 import Plate from "./icons/food/Plate.vue"
 import Bowl from "./icons/food/Bowl.vue"
 import Amuse from "./icons/food/Amuse.vue"
+import CategoryTile from "./ui/CategoryTile.vue"
 
 defineProps(['food', 'showMenu'])
 const emit = defineEmits(['active'])
 
+// The category's icon, keyed the way the API names it
+const ICONS = {
+  tacos: Tacos,
+  sandwish: Sandwish,
+  burger: Burger,
+  salade: Salade,
+  jus: Jus,
+  boissons: Drink,
+  'cheese naan': Naan,
+  wrap: Wrap,
+  frites: Fries,
+  wings: Wings,
+  pizza: Pizza,
+  oven: Oven,
+  panini: Panini,
+  breakfast: Breakfast,
+  dessert: Dessert,
+  shawarma: Shawarma,
+  plate: Plate,
+  bol: Bowl,
+  amuse: Amuse,
+}
+
 const setActive = (i) => {
   emit('active', i)
 }
-
 </script>
 
 <template>
-  <button
+  <!-- The selected category is a filled brand tile. It used to be the yellow
+       highlight, which also meant "warning" everywhere else in the product. -->
+  <CategoryTile
     v-for="(item, i) in food"
     :key="i"
-    class="border border-border rounded-md px-2 py-2 hover:bg-third hover:border-third transition-all flex flex-col justify-center items-center"
-    :class="(!showMenu && item.active) && 'bg-third'"
+    :label="item.name"
+    :active="!showMenu && item.active"
     @click="setActive(i)"
   >
-    <Tacos v-if="item.image === 'tacos'" class="h-10" />
-    <Sandwish v-if="item.image === 'sandwish'" class="h-10" />
-    <Burger v-if="item.image === 'burger'" class="h-10" />
-    <Salade v-if="item.image === 'salade'" class="h-10" />
-    <Jus v-if="item.image === 'jus'" class="h-10" />
-    <Drink v-if="item.image === 'boissons'" class="h-10" />
-    <Naan v-if="item.image === 'cheese naan'" class="h-10" />
-    <Wrap v-if="item.image === 'wrap'" class="h-10" />
-    <Fries v-if="item.image === 'frites'" class="h-10" />
-    <Wings v-if="item.image === 'wings'" class="h-10" />
-    <Pizza v-if="item.image === 'pizza'" class="h-10" />
-    <Oven v-if="item.image === 'oven'" class="h-10" />
-    <Panini v-if="item.image === 'panini'" class="h-10" />
-    <Breakfast v-if="item.image === 'breakfast'" class="h-10" />
-    <Dessert v-if="item.image === 'dessert'" class="h-10" />
-    <Shawarma v-if="item.image === 'shawarma'" class="h-10" />
-    <Plate v-if="item.image === 'plate'" class="h-10" />
-    <Bowl v-if="item.image === 'bol'" class="h-10" />
-    <Amuse v-if="item.image === 'amuse'" class="h-10" />
-    <span class="capitalize text-xs">{{ item.name }}</span>
-  </button>
+    <component
+      :is="ICONS[item.image]"
+      v-if="ICONS[item.image]"
+      class="h-8"
+      :class="(!showMenu && item.active) ? 'fill-white' : 'fill-main'"
+    />
+  </CategoryTile>
 </template>

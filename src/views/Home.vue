@@ -4,42 +4,41 @@ import Cash from "../components/icons/Cash.vue";
 import Tablet from "../components/icons/Tablet.vue";
 import { useRouter } from "vue-router"
 import { useStore } from "../store"
+
 const router = useRouter()
 const store = useStore()
 
-const showCart = () => {
-  store.updateType('stockage')
+// Three posts, one screen. Each one is a card, not an outline.
+const posts = [
+  { type: 'stockage', label: 'Charges', hint: 'Achats et caisse du jour', icon: Cart },
+  { type: 'caisse', label: 'Caisse', hint: 'Prise de commande et impression', icon: Cash },
+  { type: 'tablet', label: 'Tablet', hint: 'Prise de commande en salle', icon: Tablet },
+]
+
+const open = (type) => {
+  store.updateType(type)
   router.push('/password')
 }
-
-const showCash = () => {
-  store.updateType('caisse')
-  router.push('/password')
-}
-
-const showTablet = () => {
-  store.updateType('tablet')
-  router.push('/password')
-}
-
 </script>
 
 <template>
-  <div class="flex flex-col justify-center items-center w-full min-h-screen gap-6 p-8">
-      <img src="../assets/images/logo.png" alt="Chicken Coop Logo" class="w-80">
-      <div class="flex justify-between gap-4 w-full lg:w-2/3 mt-16">
-        <button @click="showCart" class="group transition flex flex-col items-center gap-2 bg-white border-2 border-main rounded-md w-64 py-4 hover:bg-main">
-          <Cart class="h-24 fill-main group-hover:fill-white" />
-          <span class="text-main group-hover:text-white font-bree-serif font-bold text-3xl">Charges</span>
-        </button>
-        <button @click="showCash" class="group transition flex flex-col items-center gap-2 bg-white border-2 border-main rounded-md w-64 py-4 hover:bg-main">
-          <Cash class="h-24 fill-main group-hover:fill-white" />
-          <span class="text-main group-hover:text-white font-bree-serif font-bold text-3xl">Caisse</span>
-        </button>
-        <button @click="showTablet" class="group transition flex flex-col items-center gap-2 bg-white border-2 border-main rounded-md w-64 py-4 hover:bg-main">
-          <Tablet class="h-24 fill-main group-hover:fill-white" />
-          <span class="text-main group-hover:text-white font-bree-serif font-bold text-3xl">Tablet</span>
-        </button>
-      </div>
+  <div class="min-h-screen flex flex-col justify-center items-center gap-12 p-8">
+    <img src="../assets/images/logo.png" alt="Chicken Coop" class="w-52">
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5 w-full max-w-4xl">
+      <button
+        v-for="post in posts"
+        :key="post.type"
+        @click="open(post.type)"
+        class="group bg-white border border-black/[.07] rounded-xl shadow-sm px-6 py-8 flex flex-col items-center gap-4
+          transition-shadow hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-main/40"
+      >
+        <span class="w-20 h-20 rounded-xl bg-main/[.10] flex items-center justify-center transition-colors group-hover:bg-main/20">
+          <component :is="post.icon" class="h-11 fill-main" />
+        </span>
+        <span class="font-bree-serif text-2xl">{{ post.label }}</span>
+        <span class="text-[13px] text-black/50">{{ post.hint }}</span>
+      </button>
+    </div>
   </div>
 </template>

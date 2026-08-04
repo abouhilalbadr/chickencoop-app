@@ -2,7 +2,10 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import axios from 'axios'
 
+import AppButton from '../ui/AppButton.vue'
+
 const props = defineProps(['token'])
+const emit = defineEmits(['saved'])
 
 const charge = reactive({
   supplier: '',
@@ -116,7 +119,14 @@ const submitCharge = async () => {
         }
       )
       if (data?.data?.name) {
-        location.reload()
+        // The dialog closes and the table refetches; reloading the whole app
+        // for one row also threw away the session's cart on the till
+        charge.supplier = ''
+        charge.product = ''
+        charge.price = ''
+        charge.size = ''
+        loading.value = false
+        emit('saved', data.data)
       }
     }
   } catch (error) {
@@ -139,74 +149,80 @@ onMounted(() => {
 
 </script>
 <template>
-  <form @submit.prevent="submitCharge" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-    <div class="flex flex-col gap-2">
-      <label class="px-2" for="supplier" :class="errors.supplier ? 'text-red' : 'text-black/50'">
+  <form @submit.prevent="submitCharge" class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+    <div class="flex flex-col gap-1.5">
+      <label class="text-[11px] font-bold uppercase tracking-[.07em]" for="supplier"
+        :class="errors.supplier ? 'text-danger' : 'text-black/50'">
         Fournisseur
       </label>
-      <select id="supplier" class="outline-none w-full px-4 py-2 border rounded-md"
-        :class="errors.supplier ? 'border-red placeholder:text-red text-red' : 'border-gray'" v-model="charge.supplier"
+      <select id="supplier" class="h-12 px-3 w-full border rounded-lg outline-none bg-white
+          focus:border-main focus:ring-[3px] focus:ring-main/[.15]"
+        :class="errors.supplier ? 'border-danger' : 'border-border'" v-model="charge.supplier"
         @input="errors.supplier = ''">
         <option value="" disabled selected>Choisir un fournisseur</option>
         <option v-for="(supplier, i) in suppliers" :key="i" :value="supplier.name">
           {{ supplier.name }}
         </option>
       </select>
-      <span v-if="errors.supplier" class="italic text-red text-xs">
+      <span v-if="errors.supplier" class="text-danger text-xs">
         {{ errors.supplier }}
       </span>
     </div>
-    <div class="flex flex-col gap-2">
-      <label class="px-2" for="product" :class="errors.product ? 'text-red' : 'text-black/50'">
+
+    <div class="flex flex-col gap-1.5">
+      <label class="text-[11px] font-bold uppercase tracking-[.07em]" for="product"
+        :class="errors.product ? 'text-danger' : 'text-black/50'">
         Produit
       </label>
-      <!-- <select id="supplier" class="outline-none w-full px-4 py-2 border rounded-md"
-        :class="errors.product ? 'border-red placeholder:text-red text-red' : 'border-gray'" v-model="charge.product"
-        @input="errors.product = ''">
-        <option value="" disabled selected>Choisir un produit</option>
-        <option v-for="(prod, i) in products" :key="i" :value="prod.name">
-          {{ prod.name }}
-        </option>
-      </select> -->
-      <input type="text" id="product" class="outline-none w-full px-4 py-2 border rounded-md"
-        :class="errors.product ? 'border-red placeholder:text-red text-red' : 'border-gray'" placeholder="Produit"
+      <input type="text" id="product" class="h-12 px-3 w-full border rounded-lg outline-none
+          focus:border-main focus:ring-[3px] focus:ring-main/[.15]"
+        :class="errors.product ? 'border-danger' : 'border-border'" placeholder="Produit"
         v-model="charge.product" @input="errors.product = ''" />
-      <span v-if="errors.product" class="italic text-red text-xs">
+      <span v-if="errors.product" class="text-danger text-xs">
         {{ errors.product }}
       </span>
     </div>
-    <div class="relative flex flex-col gap-2">
-      <label class="px-2" for="size" :class="errors.size ? 'text-red' : 'text-black/50'">
+
+    <div class="flex flex-col gap-1.5">
+      <label class="text-[11px] font-bold uppercase tracking-[.07em]" for="size"
+        :class="errors.size ? 'text-danger' : 'text-black/50'">
         Quantité
       </label>
-      <input type="text" id="size" class="outline-none w-full px-4 py-2 border rounded-md"
-        :class="errors.size ? 'border-red placeholder:text-red text-red' : 'border-gray'" placeholder="2"
-        v-model="charge.size" @input="errors.size = ''" />
-      <span v-if="errors.size" class="italic text-red text-xs">
+      <!-- The unit rides inside the field: it is what the quantity is counted
+           in, not a separate green button. -->
+      <div class="relative">
+        <input type="text" id="size" class="h-12 pl-3 pr-24 w-full border rounded-lg outline-none tabular-nums
+            focus:border-main focus:ring-[3px] focus:ring-main/[.15]"
+          :class="errors.size ? 'border-danger' : 'border-border'" placeholder="2"
+          v-model="charge.size" @input="errors.size = ''" />
+        <span class="absolute top-1/2 right-1.5 -translate-y-1/2 px-3 h-9 rounded-md bg-gray-light text-black/65 text-sm flex items-center">
+          {{ unite }}
+        </span>
+      </div>
+      <span v-if="errors.size" class="text-danger text-xs">
         {{ errors.size }}
       </span>
-      <span class="absolute bottom-0 right-0 px-4 py-2 bg-second text-white rounded-md">
-        {{ unite }}
-      </span>
     </div>
-    <div class="flex flex-col gap-2">
-      <label class="px-2" for="price" :class="errors.price ? 'text-red' : 'text-black/50'">
+
+    <div class="flex flex-col gap-1.5">
+      <label class="text-[11px] font-bold uppercase tracking-[.07em]" for="price"
+        :class="errors.price ? 'text-danger' : 'text-black/50'">
         Montant
       </label>
-      <input type="text" id="price" class="outline-none w-full px-4 py-2 border rounded-md"
-        :class="errors.price ? 'border-red placeholder:text-red text-red' : 'border-gray'" placeholder="200"
-        v-model="charge.price" @input="errors.price = ''" />
-      <span v-if="errors.price" class="italic text-red text-xs">
+      <div class="relative">
+        <input type="text" id="price" class="h-12 pl-3 pr-14 w-full border rounded-lg outline-none tabular-nums
+            focus:border-main focus:ring-[3px] focus:ring-main/[.15]"
+          :class="errors.price ? 'border-danger' : 'border-border'" placeholder="200"
+          v-model="charge.price" @input="errors.price = ''" />
+        <span class="absolute top-1/2 right-3 -translate-y-1/2 text-black/45 text-sm">DH</span>
+      </div>
+      <span v-if="errors.price" class="text-danger text-xs">
         {{ errors.price }}
       </span>
     </div>
-    <div class="lg:col-span-2 flex justify-end">
-      <button type="submit"
-        class="bg-main text-white px-10 py-2 rounded-md hover:bg-main/80 transition disabled:bg-main/50 disabled:cursor-wait flex justify-center items-center"
-        :disabled="loading">
-        <span v-if="loading" class="loading"></span>
-        <span v-else>Sauvegarder</span>
-      </button>
+
+    <div class="sm:col-span-2 flex justify-end pt-2 border-t border-border">
+      <AppButton type="submit" variant="primary" size="lg" :loading="loading">Sauvegarder</AppButton>
     </div>
   </form>
 </template>

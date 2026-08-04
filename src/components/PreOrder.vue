@@ -1,9 +1,17 @@
 <script setup>
+import { ref } from "vue"
+import axios from "axios"
+import Swal from "sweetalert2"
+
 import { useStore } from "../store"
 import Close from "./icons/Close.vue";
+import Amount from "./ui/Money.vue";
+import AppButton from "./ui/AppButton.vue";
 
 const store = useStore()
 const emits = defineEmits(['change-page', 'add-to-cart'])
+
+const deleting = ref(null)
 
 const updatePage = (p) => {
   emits('change-page', p)
@@ -17,45 +25,120 @@ const jsonProducts = (products) => {
   return JSON.parse(products)
 }
 
+// A client can place an order on the site and then call to cancel it. The row
+// stays on the till for ever otherwise: it is only cleared by being rung up.
+const removeOrder = async (order) => {
+  const confirm = await Swal.fire({
+    title: 'Supprimer la précommande ?',
+    text: `La commande de ${order.clientName} sera définitivement supprimée.`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Supprimer',
+    cancelButtonText: 'Annuler',
+    confirmButtonColor: '#c9382b',
+  })
+  if (!confirm.isConfirmed) return
+
+  deleting.value = order.id
+  try {
+    await axios.delete(`/preorder/${order.id}`, {
+      headers: { Authorization: `Bearer ${store.user.accessToken}` },
+    })
+    store.removePreorder(order.id)
+    Swal.fire({
+      position: 'top-end',
+      icon: 'success',
+      title: 'Précommande supprimée',
+      showConfirmButton: false,
+      timer: 1500,
+    })
+  } catch (error) {
+    Swal.fire({
+      position: 'top-end',
+      icon: 'error',
+      title: 'Suppression impossible. Veuillez réessayer',
+      showConfirmButton: false,
+      timer: 2000,
+    })
+  } finally {
+    deleting.value = null
+  }
+}
 </script>
 
 <template>
   <div class="relative">
-    <div class="fixed top-0 left-0 w-full h-screen z-40 bg-black/90"></div>
-    <aside class="fixed top-0 right-0 w-1/2 z-50 bg-white shadow-xl border-l border-border">
-      <div class="flex justify-between items-center gap-4 p-4">
-        <h2 class="text-2xl font-bold">Précommandes sur le site Web</h2>
-        <button @click="updatePage('caisse')" class="text-main h-10 w-10 p-2 rounded-full bg-black/10 hover:bg-main hover:text-white transition-all flex justify-center items-center">
+    <div class="fixed inset-0 z-40 bg-black/50" @click="updatePage('caisse')"></div>
+    <!-- A drawer, not a page: the till behind it stays where it was -->
+    <aside class="fixed top-0 right-0 h-screen w-full max-w-2xl z-50 bg-white border-l border-border shadow-lg flex flex-col">
+      <header class="flex justify-between items-center gap-4 px-5 h-16 border-b border-border shrink-0">
+        <div class="flex items-center gap-2.5">
+          <h2 class="font-bree-serif text-xl">Précommandes du site</h2>
+          <span
+            v-if="store.preorders.length"
+            class="min-w-[26px] h-[26px] px-1.5 rounded-full bg-main text-white text-[13px] font-bold flex items-center justify-center tabular-nums"
+          >
+            {{ store.preorders.length }}
+          </span>
+        </div>
+        <button
+          @click="updatePage('caisse')"
+          class="h-11 w-11 rounded-lg border border-border flex justify-center items-center text-black/55 transition-colors hover:bg-gray-light"
+          aria-label="Fermer"
+        >
           <close />
         </button>
-      </div>
-      <div class="px-4 pt-6 pb-16 flex flex-col gap-4 overflow-scroll h-[calc(100vh-2rem)]">
-        <div v-for="(item, i) in store.preorders" :key="i" class="flex flex-col gap-4 border border-border p-4 rounded-md">
-          <div class="flex justify-between items-center gap-4">
-            <h3>Commande du <span class="font-bold">{{ item.clientName }}</span> <span class="text-main">({{ item.clientPhone }})</span></h3>
-            <h4 class="font-bold text-xl text-main">{{ item.total }} DH</h4>
+      </header>
+
+      <div class="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
+        <div
+          v-for="(item, i) in store.preorders"
+          :key="i"
+          class="border border-border rounded-xl overflow-hidden"
+        >
+          <div class="flex justify-between items-center gap-4 px-4 py-3 bg-gray-light border-b border-border">
+            <div>
+              <h3 class="font-medium">{{ item.clientName }}</h3>
+              <p class="text-[13px] text-black/55">{{ item.clientPhone }}</p>
+            </div>
+            <Amount :value="item.total" size="total" tone="brand" :decimals="false" />
           </div>
-          <div class="flex flex-col gap-4">
-            <div v-for="(product, j) in jsonProducts(item.products)" :key="j" class="relative border-b last:border-none border-border flex items-center justify-between gap-4 py-4 px-2 mb-2 w-full">
-              <div class="flex items-center gap-4 flex-1">
-                <img :src="product.image" :alt="product.name" class="h-12 object-cover rounded-md">
-                <div class="flex flex-col gap-2">
-                  <h5 class="text-black font-bold font-bree-serif">{{ product.number > 1 ? `${product.number}x ` : '' }} {{ product.name }} <span v-if="product.size" class="uppercase text-main">({{ product.size }})</span></h5>
-                  <div class="flex flex-col gap-1 text-black/50 text-xs">
-                    <span v-if="product.viandes && product.viandes.length > 0">Les viandes: {{ product.viandes.join(',  ') }}</span>
-                    <span v-if="product.sauces && product.sauces.length > 0">Les sauces: {{ product.sauces.join(', ') }}</span>
-                    <span v-if="product.extras && product.extras.length > 0">Les extras: {{ product.extras.join(', ') }}</span>
-                  </div>
+
+          <div class="px-4 divide-y divide-border">
+            <div v-for="(product, j) in jsonProducts(item.products)" :key="j" class="flex items-start gap-3 py-3">
+              <img v-if="product.image" :src="product.image" :alt="product.name" class="h-12 w-12 object-cover rounded-lg shrink-0">
+              <div class="flex flex-col gap-1 flex-1 min-w-0">
+                <h4 class="font-bree-serif text-[15px] leading-tight">
+                  <span v-if="product.number > 1" class="text-main">{{ product.number }}×</span>
+                  {{ product.name }}
+                  <span v-if="product.size" class="uppercase text-main">({{ product.size }})</span>
+                </h4>
+                <div v-if="product.viandes?.length || product.sauces?.length || product.extras?.length" class="flex flex-col gap-0.5 text-black/55 text-xs">
+                  <span v-if="product.viandes?.length">Viandes : {{ product.viandes.join(', ') }}</span>
+                  <span v-if="product.sauces?.length">Sauces : {{ product.sauces.join(', ') }}</span>
+                  <span v-if="product.extras?.length">Extras : {{ product.extras.join(', ') }}</span>
                 </div>
               </div>
-              <span class="text-xl font-bree-serif text-main">{{ product.price }} <span class="text-base">DH</span></span>
+              <Amount :value="product.price" :decimals="false" />
             </div>
           </div>
-          <div class="flex justify-end">
-            <button @click="addOrderToCart(item)" class="bg-main text-white px-4 py-2 rounded-md">Ajouter à la caisse</button>
+
+          <div class="px-4 py-3 border-t border-border flex justify-between gap-3">
+            <!-- Destructive, so outlined: it never looks like the main action -->
+            <AppButton
+              variant="danger"
+              :loading="deleting === item.id"
+              @click="removeOrder(item)"
+            >
+              Supprimer
+            </AppButton>
+            <AppButton variant="primary" @click="addOrderToCart(item)">Ajouter à la caisse</AppButton>
           </div>
         </div>
-        <p v-if="store.preorders.length === 0" class="p-4 text-black/50 text-center">Pas de commandes sur le site Web</p>
+
+        <p v-if="store.preorders.length === 0" class="text-black/45 text-center py-16">
+          Pas de commandes sur le site Web
+        </p>
       </div>
     </aside>
   </div>

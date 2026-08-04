@@ -1,43 +1,41 @@
 <script setup>
-import { ref, computed } from "vue"
+import { ref } from "vue"
 
 import Modal from "./Modal.vue";
-
-import { useStore } from "../store"
-
-const store = useStore()
+import Choice from "./ui/Choice.vue";
 
 const props = defineProps(['settingModal'])
-const emit = defineEmits(['settingsClose', 'updateInput'])
+const emit = defineEmits(['closeModal', 'updateInput'])
 
 const number = ref(0)
 
 const closeModal = () => {
-  emit('settingsClose')
+  emit('closeModal')
 }
 
+// Picking the buzzer is what sends the order — one tap, no confirm step.
 const setNumber = (num) => {
   number.value = num
   emit('updateInput', num)
 }
-
 </script>
 
 <template>
   <Modal size="small" :is-open="settingModal" @close-modal="closeModal">
     <template v-slot:title>Numéro de bipeur</template>
     <template v-slot:body>
-      <div class="p-4 mt-8">
-        <div class="grid grid-cols-5 gap-6">
-          <button
-            v-for="i in 20"
-            class="border border-main rounded-md h-12 transition-all hover:bg-main hover:text-white"
-            :class="number === i ? 'bg-main text-white' : 'text-main'"
-            @click="setNumber(i)"
-          >
-            {{ i }}
-          </button>
-        </div>
+      <div class="grid grid-cols-5 gap-2.5">
+        <Choice
+          v-for="i in 20"
+          :key="i"
+          :selected="number === i"
+          size="lg"
+          block
+          class="!font-bree-serif !text-xl"
+          @click="setNumber(i)"
+        >
+          {{ i }}
+        </Choice>
       </div>
     </template>
   </Modal>

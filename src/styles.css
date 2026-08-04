@@ -2,63 +2,67 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Hide scrollbar for Chrome, Safari and Opera */
-*::-webkit-scrollbar {
-  display: none;
-}
-
-/* Hide scrollbar for IE, Edge and Firefox */
-* {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
-}
-
 body {
-  @apply font-roboto text-black
+  @apply font-roboto text-black bg-body;
 }
 
 button {
-  @apply focus:outline-none
+  @apply focus:outline-none;
 }
 
+/* Scrollbars stay visible: a product grid or a cart that scrolls has to say so.
+   They were hidden globally before. */
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-thumb {
+  background: rgba(35, 34, 41, .18);
+  border-radius: 999px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* The PIN pad and the cash keypad. Keys are white cards on the warm field,
+   pressed state is the brand colour. */
 .keyboard button {
-  @apply relative flex items-center justify-center text-3xl transition-all duration-500 rounded-md bg-gray text-black active:scale-95 active:duration-[0s] active:bg-main active:text-white
-  ;
+  @apply relative flex items-center justify-center text-3xl font-medium rounded-xl bg-white text-black border border-border
+    transition-colors duration-100 hover:bg-gray-light active:bg-main active:border-main active:text-white active:duration-[0s];
 }
 
+/* Section titles carry a short rule instead of another font size */
 .title::after {
   @apply content-[''] absolute -bottom-2 left-0 w-[25px] h-0.5 rounded-md bg-main transition-all;
 }
 
-.details::after {
-  @apply content-[''] absolute bg-gradient-to-t from-black/90 w-full h-full bottom-0 left-0 rounded-md;
+/* A figure that has just changed: it settles rather than blinking, so the eye
+   is drawn to the new total without the number appearing to flicker. */
+@keyframes pop {
+  from { transform: scale(.92); opacity: .55; }
+  to   { transform: scale(1); opacity: 1; }
+}
+.animate-pop {
+  animation: pop .18s ease-out;
 }
 
-.details * {
-  @apply z-10 relative;
+/* Loading skeletons: bars at the size of the content they stand in for. */
+.skeleton {
+  @apply rounded-lg;
+  background: linear-gradient(90deg, #f3f2ee, #e9e8e4, #f3f2ee);
+  background-size: 200% 100%;
+  animation: skeleton 1.2s ease-in-out infinite;
 }
-
-.cart-item::after {
-  @apply content-[''] transition absolute top-0 left-0
-}
-
-.cart-item:hover::after {
-  @apply w-full h-full bg-black/60 rounded-md
-}
-
-.small-modal {
-  @apply w-full lg:w-4/5;
-}
-
-.normal-modal {
-  @apply w-full lg:w-5/6;
+@keyframes skeleton {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 /* CSS Loading */
 .loading {
-  width: 25px;
-  height: 25px;
-  border: 2px solid #FFF;
+  width: 22px;
+  height: 22px;
+  border: 2px solid currentColor;
   border-bottom-color: transparent;
   border-radius: 50%;
   display: inline-block;
@@ -67,7 +71,7 @@ button {
 }
 
 .loading.big {
-  @apply border-4 border-main border-b-transparent w-12 h-12
+  @apply border-4 border-main border-b-transparent w-12 h-12;
 }
 
 @keyframes rotation {
@@ -77,6 +81,18 @@ button {
   100% {
       transform: rotate(360deg);
   }
+}
+
+/* Number fields keep their own spinner arrows, which eat the right-hand side of
+   the box and push a centred figure off centre. The counter has its own −/+. */
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
 }
 
 select:not([size]) {
@@ -92,7 +108,23 @@ select:not([size]) {
   appearance: none;
 }
 
-/* Print CSS */
+/* vue-datepicker ships its own input chrome; this brings it to the same
+   control as every other field. */
+.dp__input {
+  @apply !h-12 !rounded-lg !border-border !text-base !text-black !pl-11 !pr-3 !font-roboto;
+}
+.dp__input_icon {
+  @apply !text-black/45 !left-3;
+}
+.dp__theme_light {
+  --dp-primary-color: #f15d36;
+  --dp-border-color: #ddd;
+  --dp-text-color: #232229;
+  --dp-border-radius: 8px;
+}
+
+/* Print CSS — the receipt. Untouched by the redesign: it is 58mm of thermal
+   paper, not a screen. */
 
 @media print {
   body {

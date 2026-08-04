@@ -16,6 +16,7 @@ import OrdersNotif from "../components/OrdersNotif.vue"
 import OrdersPrints from "../components/OrdersPrints.vue"
 import Menu from "../components/icons/food/Menu.vue";
 import PreOrder from "../components/PreOrder.vue";
+import CategoryTile from "../components/ui/CategoryTile.vue";
 
 const store = useStore()
 
@@ -277,50 +278,56 @@ onMounted(() => {
     @change-step="stepChanger"
     @tacos-close="closeTacosModal"
   />
-  <main class="grid grid-cols-1 lg:grid-cols-6 gap-6 p-4 w-full min-h-screen">
-    <div class="lg:col-span-4 flex flex-col gap-6">
-      <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+  <main class="grid grid-cols-1 lg:grid-cols-12 gap-4 p-4 items-start">
+    <div class="lg:col-span-8 flex flex-col gap-4">
+      <!-- Category rail. Menu sits in the same row as the categories because
+           that is what it is: one more way to pick a product. -->
+      <nav class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2.5">
         <food-list
           :food="food"
           :showMenu="showMenu"
           @active="setActive"
         />
-        <button
-          class="border border-border rounded-md px-2 py-2 hover:bg-third hover:border-third transition-all flex flex-col justify-center items-center"
-          :class="showMenu && 'bg-third'"
-          @click="getMenu"
-        >
-          <Menu class="h-8" />
-          <span class="text-xs">Menu</span>
-        </button>
-      </div>
-      <div class="h-[550px] overflow-scroll px-2">
-        <div v-if="showMenu" class="pt-2 pb-16 grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card
-            v-for="(item, i) in menu"
-            :key="i"
-            :item="item"
-            @click="setCurrentMenu(i)"
-          />
+        <category-tile label="Menu" :active="showMenu" @click="getMenu">
+          <Menu class="h-8" :class="showMenu ? 'fill-white' : 'fill-main'" />
+        </category-tile>
+      </nav>
+
+      <section class="bg-white border border-black/[.07] rounded-xl shadow-sm overflow-hidden">
+        <!-- Grows with the category, never past the screen -->
+        <div class="max-h-[calc(100vh-260px)] overflow-y-auto p-4">
+          <div v-if="showMenu" class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <Card
+              v-for="(item, i) in menu"
+              :key="i"
+              :item="item"
+              @click="setCurrentMenu(i)"
+            />
+          </div>
+          <div v-else class="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            <Card
+              v-for="(item, i) in allFood[activeFood?.image]"
+              :key="i"
+              :item="item"
+              @click="setCurrent(i)"
+            />
+            <add-button
+              v-if="activeFood?.image === 'tacos'"
+              title="Composer votre Tacos"
+              @open-modal="openTacosModal"
+            />
+          </div>
         </div>
-        <div v-else class="pt-2 pb-16 grid grid-cols-2 lg:grid-cols-5 gap-4">
-          <Card
-            v-for="(item, i) in allFood[activeFood?.image]"
-            :key="i"
-            :item="item"
-            @click="setCurrent(i)"
-          />
-          <add-button
-            v-if="activeFood?.image === 'tacos'"
-            title="Composer votre Tacos"
-            @open-modal="openTacosModal"
-          />
-        </div>
+      </section>
+
+      <!-- Both boards only exist when they have something in them -->
+      <div v-if="notifications.length > 0 || prints.length > 0" class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+        <orders-notif v-if="notifications.length > 0" :notif="notifications" />
+        <orders-prints v-if="prints.length > 0" :prints="prints" />
       </div>
-      <orders-notif v-if="notifications.length > 0" :notif="notifications" />
-      <orders-prints v-if="prints.length > 0" :prints="prints" />
     </div>
-    <div class="lg:col-span-2 flex flex-col gap-6">
+
+    <div class="lg:col-span-4 lg:sticky lg:top-20">
       <panier :cart="cart" @cart-del="delFromCart" @update-cart="updateCart" page="caisse" />
     </div>
   </main>

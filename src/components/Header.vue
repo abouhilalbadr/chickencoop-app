@@ -1,6 +1,6 @@
 <script setup>
 import { useRouter } from 'vue-router'
-import { ref, onMounted } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import axios from 'axios'
 
 import SettingModal from "../components/SettingModal.vue";
@@ -25,6 +25,18 @@ const emit = defineEmits(['change-page', 'add-to-cart'])
 const modal = ref(false)
 const deliveriesModal = ref(false)
 const todayCount = ref(0)
+
+// A till runs all service without anyone reloading it; the clock says it is live
+const now = ref(new Date())
+let timer
+
+const time = computed(() => now.value.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }))
+
+const postIcon = computed(() => {
+  if (store?.user?.name === 'Charge') return Cart
+  if (store?.user?.name === 'Tablet') return Tablet
+  return Cash
+})
 
 const openModal = () => {
   modal.value = true
@@ -71,8 +83,10 @@ onMounted(() => {
     fetchDeliveriesCount();
     store.setType('caisse')
   }
+  timer = setInterval(() => (now.value = new Date()), 1000)
 })
 
+onUnmounted(() => clearInterval(timer))
 </script>
 
 <template>
@@ -81,42 +95,59 @@ onMounted(() => {
     <deliveries-modal :deliveriesModal="deliveriesModal" @deliveriesClose="deliveriesModal = false"
       @addToCart="addproductsToCart" />
   </div>
-  <header class="px-4 py-2">
-    <div class="flex items-center justify-between gap-4">
-      <div class="flex items-center gap-4">
-        <img src="../assets/images/logo.png" alt="Chicken Coop Logo" class="h-12">
-        <div class="flex items-center gap-2">
-          <Cart v-if="store?.user?.name === 'Charge'" class="h-16 fill-main relative top-1" />
-          <Tablet v-else-if="store?.user?.name === 'Tablet'" class="h-12 fill-main relative top-1" />
-          <Cash v-else class="h-12 fill-main relative top-1" />
-          <span class="text-main font-bree-serif">
-            {{ store?.user?.name || 'Caisse' }}
-          </span>
-        </div>
+  <header class="sticky top-0 z-30 bg-white border-b border-border">
+    <div class="flex items-center gap-5 px-4 h-16">
+      <img src="../assets/images/logo.png" alt="Chicken Coop" class="h-11">
+      <div class="flex items-center gap-2">
+        <component :is="postIcon" class="h-8 fill-main" />
+        <span class="font-bree-serif text-lg">{{ store?.user?.name || 'Caisse' }}</span>
       </div>
-      <div class="flex items-center gap-8">
-        <button v-if="store.type === 'caisse'" @click="openDeliveries"
-          class="relative text-main h-10 w-10 rounded-md flex justify-center items-center transition-all"
-          title="Livraisons">
-          <Truck class="h-8 w-8 fill-main" />
+
+      <div class="ml-auto flex items-center gap-2">
+        <span class="font-bree-serif text-xl tabular-nums text-black/70 mr-2">{{ time }}</span>
+
+        <!-- Tools, all the same shape: a square icon button with its count on it -->
+        <button
+          v-if="store.type === 'caisse'"
+          @click="openDeliveries"
+          class="relative h-12 w-12 rounded-lg border border-border bg-white flex justify-center items-center transition-colors hover:bg-gray-light"
+          title="Livraisons"
+        >
+          <Truck class="h-7 w-7 fill-main" />
           <span
-            class="absolute -top-2 -right-2 min-w-[1.5rem] h-6 px-1 text-xs bg-third text-black font-bold rounded-full flex justify-center items-center">
-            {{ todayCount || 0 }}
+            v-if="todayCount"
+            class="absolute -top-1.5 -right-1.5 min-w-[22px] h-[22px] px-1 text-[11px] font-bold bg-third text-black rounded-full flex justify-center items-center"
+          >
+            {{ todayCount }}
           </span>
         </button>
-        <button v-if="store.type === 'caisse'" @click="openModal"
-          class="text-main h-10 w-10 rounded-md flex justify-center items-center">
-          <settings />
-        </button>
-        <button v-if="store.type === 'caisse'" @click="updatePage('preorder')"
-          class="relative text-main h-10 w-10 rounded-md flex justify-center items-center">
+        <button
+          v-if="store.type === 'caisse'"
+          @click="updatePage('preorder')"
+          class="relative h-12 w-12 rounded-lg border border-border bg-white text-main flex justify-center items-center transition-colors hover:bg-gray-light"
+          title="Précommandes"
+        >
           <Preorder />
           <span
-            class="absolute -top-2 -right-2 w-6 h-6 text-xs bg-third text-black font-bold rounded-full flex justify-center items-center">
+            v-if="store.preorders.length"
+            class="absolute -top-1.5 -right-1.5 min-w-[22px] h-[22px] px-1 text-[11px] font-bold bg-third text-black rounded-full flex justify-center items-center"
+          >
             {{ store.preorders.length }}
           </span>
         </button>
-        <button @click="returnBack" class="bg-main flex gap-2 items-center text-white rounded-md px-8 py-3">
+        <button
+          v-if="store.type === 'caisse'"
+          @click="openModal"
+          class="h-12 w-12 rounded-lg border border-border bg-white text-main flex justify-center items-center transition-colors hover:bg-gray-light"
+          title="Paramètres"
+        >
+          <settings />
+        </button>
+
+        <button
+          @click="returnBack"
+          class="h-12 px-5 ml-2 rounded-lg border border-border bg-white text-black flex gap-2 items-center transition-colors hover:bg-gray-light"
+        >
           <lock />
           <span>Verrouiller</span>
         </button>

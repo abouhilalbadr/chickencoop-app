@@ -1,5 +1,6 @@
 <script setup>
 import { ref, reactive } from "vue"
+import OptionChip from "./ui/OptionChip.vue"
 
 const selectedExtra = ref([])
 const emit = defineEmits(['saveExtras'])
@@ -16,24 +17,22 @@ const toggleExtra = (extra) => {
     selectedExtra.value.push(extra)
   emit('saveExtras', {extras: selectedExtra.value, price: extra === 'piment' ? 5 : more.extras.price, operation: (index > -1 ? 'minus' : 'plus')})
 }
-
 </script>
+
 <template>
-    <div class="flex items-center flex-wrap gap-4">
-      <button
-        class="rounded-md border border-main px-6 py-1 font-bold first-letter:capitalize"
-        :class="selectedExtra.includes('piment') ? 'bg-main text-white' : 'text-main'"
-        @click="toggleExtra('piment')"
-      >
-        Piment
-      </button>
-      <button
-        v-for="(extra, i) in extras"
-        class="rounded-md border border-main px-6 py-1 font-bold first-letter:capitalize"
-        :class="selectedExtra.includes(extra) ? 'bg-main text-white' : 'text-main'"
-        @click="toggleExtra(extra)"
-      >
-        {{ extra }}
-      </button>
-    </div>
+  <div class="flex items-center flex-wrap gap-2.5">
+    <!-- Piment is priced apart from the catalogue, so it is listed apart -->
+    <OptionChip
+      label="piment"
+      :selected="selectedExtra.includes('piment')"
+      @click="toggleExtra('piment')"
+    />
+    <OptionChip
+      v-for="(extra, i) in extras"
+      :key="i"
+      :label="extra"
+      :selected="selectedExtra.includes(extra)"
+      @click="toggleExtra(extra)"
+    />
+  </div>
 </template>

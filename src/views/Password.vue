@@ -1,6 +1,6 @@
 <script setup>
 import { useRouter } from 'vue-router'
-import { ref, reactive, onMounted } from "vue";
+import { computed, ref, reactive, onMounted } from "vue";
 import axios from 'axios'
 
 import Cart from "../components/icons/Cart.vue";
@@ -13,12 +13,21 @@ import { useStore } from "../store"
 const store = useStore()
 const router = useRouter()
 const loading = ref(false)
+const error = ref('')
 const users = ref([])
 const login = reactive({
   email: store.type === 'stockage' ? 'charge@chickencoop.ma' : store.type === 'tablet' ? 'tablet@chickencoop.ma' : 'caisse@chickencoop.ma',
-  // email: 'caisse@chickencoop.ma',
   password: ''
 })
+
+const post = computed(() => {
+  if (store.type === 'stockage') return { label: 'Charges', icon: Cart }
+  if (store.type === 'tablet') return { label: 'Tablet', icon: Tablet }
+  return { label: 'Caisse', icon: Cash }
+})
+
+// The pad shows how many digits have been keyed, not the digits themselves
+const dots = computed(() => Math.max(login.password.length, 4))
 
 const getAllCaissiers = async () => {
   try {
@@ -30,16 +39,21 @@ const getAllCaissiers = async () => {
 }
 
 const deleteNum = () => {
+  error.value = ''
   login.password = login.password.slice(0, -1);
 }
 const addNum = (num) => {
+  error.value = ''
   login.password += num
 }
 const reset = () => {
+  error.value = ''
   login.password = ''
 }
 const validatePass = async () => {
+  if (!login.password) return
   try {
+    error.value = ''
     loading.value = true
     const { data: user } = await axios.post('/auth/login', {
       email: login.email,
@@ -49,10 +63,14 @@ const validatePass = async () => {
     if (user.role === 'CAISSE' || user.role === 'STOCK') {
       login.password = ''
       router.push(`/${store.type}`)
+    } else {
+      error.value = "Ce compte n'a pas accès à ce poste"
     }
     loading.value = false
-  } catch (error) {
-    console.log(error);
+  } catch (err) {
+    // Until now a wrong code did nothing visible at all
+    error.value = 'Code incorrect. Veuillez réessayer.'
+    login.password = ''
     loading.value = false
   }
 }
@@ -63,98 +81,71 @@ const returnBack = () => {
 onMounted(async () => {
   if (store.type === 'caisse') {
     const caissiers = await getAllCaissiers()
-    users.value = caissiers.users
+    users.value = caissiers?.users || []
     // Default to the first caissier's email if available
     if (!login.email && users.value?.length) {
       login.email = users.value[0].email
-      // login.email = 'caisse@chickencoop.ma'
     }
   }
 })
-
 </script>
 
 <template>
-  <div class="flex flex-col justify-center items-center min-h-screen gap-6 p-8">
-    <div v-if="store.type" class="flex justify-center items-center">
-      <div v-if="store.type === 'stockage'"
-        class="flex flex-col items-center gap-2 border-2 border-main rounded-md w-64 py-4 bg-main">
-        <Cart class="h-32 fill-white" />
-        <span class="text-white font-bree-serif font-bold text-3xl">Charges</span>
-      </div>
-      <div v-else-if="store.type === 'caisse'"
-        class="flex flex-col items-center gap-2 border-2 border-main rounded-md w-64 py-4 bg-main">
-        <Cash class="h-32 fill-white" />
-        <span class="text-white font-bree-serif font-bold text-3xl">Caisse</span>
-      </div>
-      <div v-else class="flex flex-col items-center gap-2 border-2 border-main rounded-md w-64 py-4 bg-main">
-        <Tablet class="h-32 fill-white" />
-        <span class="text-white font-bree-serif font-bold text-3xl">Tablet</span>
-      </div>
-    </div>
-    <!-- <div v-if="store.type === 'caisse'" class="min-w-[600px] rounded-md flex items-center">
-      <select v-model="login.email"
-        class="col-span-5 px-4 text-2xl bg-gray tracking-wider focus:outline-none w-full rounded-md h-24">
-        <option v-for="(user, i) in users" :key="i" :value="user.email">
-          {{ user.name }}
-        </option>
-      </select>
-    </div> -->
-    <div class="min-w-[600px] max-w-sm mx-auto flex items-center">
-      <div
-        class="keyboard grid grid-cols-4 grid-rows-6 gap-1 p-1 w-full h-[450px] font-bold rounded-md ring-2 ring-white/20 shadow text-white select-none">
-        <div class="col-span-4 row-span-2 rounded-md">
-          <input type="text"
-            class="col-span-5 px-4 text-4xl bg-gray tracking-wider select-auto focus:outline-none w-full rounded-md h-24 text-main"
-            placeholder="0000" v-model="login.password" />
-        </div>
-        <button @click="addNum('1')">
-          <span>1</span>
-        </button>
-        <button @click="addNum('2')">
-          <span>2</span>
-        </button>
-        <button @click="addNum('3')">
-          <span>3</span>
-        </button>
-        <button @click="deleteNum">
-          <span class="text-xl">Supprimer</span>
-        </button>
-        <button @click="addNum('4')">
-          <span>4</span>
-        </button>
-        <button @click="addNum('5')">
-          <span>5</span>
-        </button>
-        <button @click="addNum('6')">
-          <span>6</span>
-        </button>
-        <button @click="reset">
-          <span class="text-xl">Réinitialiser</span>
-        </button>
-        <button @click="addNum('7')">
-          <span>7</span>
-        </button>
-        <button @click="addNum('8')">
-          <span>8</span>
-        </button>
-        <button @click="addNum('9')">
-          <span>9</span>
-        </button>
-        <button @click="validatePass"
-          class="row-span-2 !bg-second !text-white disabled:bg-second/50 disabled:cursor-wait" :disabled="loading">
-          <span v-if="loading" class="loading"></span>
-          <span v-else class="text-xl">Connexion</span>
-        </button>
-        <button @click="addNum('0')" class="col-span-3">
-          <span>0</span>
-        </button>
-      </div>
-    </div>
-    <button @click="returnBack"
-      class="bg-main flex gap-2 items-center text-white rounded-md px-10 py-4 fixed top-0 left-0 m-4">
+  <div class="min-h-screen flex flex-col justify-center items-center p-8">
+    <button
+      @click="returnBack"
+      class="fixed top-4 left-4 h-12 px-5 rounded-lg bg-white border border-border text-black flex gap-2 items-center transition-colors hover:bg-gray-light"
+    >
       <chevron-left />
       <span>Retour</span>
     </button>
+
+    <div class="w-full max-w-[460px] bg-white border border-black/[.07] rounded-xl shadow-sm overflow-hidden">
+      <div class="flex items-center gap-3 px-5 h-[76px] border-b border-border">
+        <span class="w-12 h-12 rounded-lg bg-main/[.10] flex items-center justify-center">
+          <component :is="post.icon" class="h-7 fill-main" />
+        </span>
+        <div>
+          <h1 class="font-bree-serif text-xl leading-tight">{{ post.label }}</h1>
+          <p class="text-black/50 text-sm">Entrez le code d'accès</p>
+        </div>
+      </div>
+
+      <div class="p-5 flex flex-col gap-4">
+        <!-- Code state, then the error under it: the pad itself never moves -->
+        <div class="h-[72px] rounded-xl bg-gray-light border border-border flex items-center justify-center gap-3.5">
+          <span
+            v-for="i in dots"
+            :key="i"
+            class="w-3.5 h-3.5 rounded-full transition-colors"
+            :class="i <= login.password.length ? 'bg-main' : 'bg-black/15'"
+          />
+        </div>
+        <p v-if="error" class="text-sm text-danger text-center -mt-1">{{ error }}</p>
+
+        <div class="keyboard grid grid-cols-4 grid-rows-4 gap-2.5 h-[360px] select-none">
+          <button @click="addNum('1')"><span>1</span></button>
+          <button @click="addNum('2')"><span>2</span></button>
+          <button @click="addNum('3')"><span>3</span></button>
+          <button @click="deleteNum" class="!text-[15px]">Supprimer</button>
+          <button @click="addNum('4')"><span>4</span></button>
+          <button @click="addNum('5')"><span>5</span></button>
+          <button @click="addNum('6')"><span>6</span></button>
+          <button @click="reset" class="!text-[15px]">Réinitialiser</button>
+          <button @click="addNum('7')"><span>7</span></button>
+          <button @click="addNum('8')"><span>8</span></button>
+          <button @click="addNum('9')"><span>9</span></button>
+          <button
+            @click="validatePass"
+            class="row-span-2 !bg-second !border-second hover:!bg-second/85 !text-white !text-base disabled:opacity-50 disabled:pointer-events-none"
+            :disabled="loading || !login.password"
+          >
+            <span v-if="loading" class="loading"></span>
+            <span v-else>Connexion</span>
+          </button>
+          <button @click="addNum('0')" class="col-span-3"><span>0</span></button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>

@@ -43,6 +43,7 @@
             image: currentProduct.image,
             price: el * currentProduct.price,
             productId: currentProduct.productId,
+            menuId: currentProduct.menuId,
             mode: currentProduct.mode,
             sauces: currentProduct.sauces,
             viandes: currentProduct.viandes,

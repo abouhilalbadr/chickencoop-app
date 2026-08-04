@@ -14,7 +14,7 @@
           leave-from="-translate-x-0"
           leave-to="translate-x-full"
         >
-          <h4 class="text-2xl font-bold text-main my-4">
+          <h4 v-if="$slots.stepTitle" class="font-bree-serif text-xl mb-4">
             <slot name="stepTitle"></slot>
           </h4>
           <slot name="stepBody"></slot>
