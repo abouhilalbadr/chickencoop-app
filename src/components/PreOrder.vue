@@ -21,8 +21,28 @@ const addOrderToCart = (order) => {
   emits('add-to-cart', order)
 }
 
+/**
+ * Les lignes d'une précommande, quelle que soit la forme reçue.
+ *
+ * `Preorder.products` est une colonne Json : le site et la caisse y écrivent
+ * une chaîne, mais une ligne écrite autrement revient déjà décodée. Un
+ * JSON.parse() sec sur un tableau lève, et l'erreur ne tombait pas sur la seule
+ * ligne fautive : elle interrompait le rendu de tout le tiroir, si bien que
+ * plus aucune commande n'affichait ses boutons Supprimer / Ajouter à la caisse.
+ * Une commande illisible doit rester encaissable — ou au moins supprimable.
+ */
 const jsonProducts = (products) => {
-  return JSON.parse(products)
+  if (Array.isArray(products)) return products
+  if (typeof products === 'string') {
+    try {
+      const parsed = JSON.parse(products)
+      return Array.isArray(parsed) ? parsed : Object.values(parsed ?? {})
+    } catch {
+      return []
+    }
+  }
+  if (products && typeof products === 'object') return Object.values(products)
+  return []
 }
 
 // A client can place an order on the site and then call to cancel it. The row
@@ -91,10 +111,16 @@ const removeOrder = async (order) => {
       </header>
 
       <div class="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
+        <!-- shrink-0 : une carte est un enfant de flex, donc compressible par
+             défaut. Dès qu'il y avait plus de commandes que de hauteur d'écran,
+             le navigateur les écrasait au lieu de faire défiler la liste, et
+             overflow-hidden rognait le reste : les lignes se coupaient en plein
+             milieu et les boutons Supprimer / Ajouter à la caisse disparaissaient
+             de toutes les commandes à la fois. -->
         <div
           v-for="(item, i) in store.preorders"
           :key="i"
-          class="border border-border rounded-xl overflow-hidden"
+          class="shrink-0 border border-border rounded-xl overflow-hidden"
         >
           <div class="flex justify-between items-center gap-4 px-4 py-3 bg-gray-light border-b border-border">
             <div>
@@ -105,6 +131,11 @@ const removeOrder = async (order) => {
           </div>
 
           <div class="px-4 divide-y divide-border">
+            <!-- Le détail peut manquer, la commande reste à traiter : on le dit
+                 au lieu de laisser une carte muette. -->
+            <p v-if="jsonProducts(item.products).length === 0" class="py-3 text-[13px] text-black/55">
+              Détail illisible — rappelez le client au {{ item.clientPhone }}
+            </p>
             <div v-for="(product, j) in jsonProducts(item.products)" :key="j" class="flex items-start gap-3 py-3">
               <img v-if="product.image" :src="product.image" :alt="product.name" class="h-12 w-12 object-cover rounded-lg shrink-0">
               <div class="flex flex-col gap-1 flex-1 min-w-0">
