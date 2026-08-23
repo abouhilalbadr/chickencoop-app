@@ -29,12 +29,10 @@ const loadingCalc = ref(false)
 const today = ref(businessDay())
 const minDate = computed(() => dayToDate(shiftBusinessDay(today.value, -BACKFILL_WINDOW_DAYS)))
 const maxDate = computed(() => dayToDate(today.value))
+// What the drawer actually holds, denomination by denomination
 const caisseTotal = ref(0)
 // The counter lives in its own card; the section header drives its reset
 const moneyRef = ref(null)
-// Counting the drawer fills Nouvelle caisse on its own. Typing in the field
-// takes over — the two were the same number entered twice before.
-const manualNewC = ref(false)
 const errors = ref({
   date: '',
   total: '',
@@ -44,7 +42,14 @@ const errors = ref({
   newC: '',
 })
 
-const calculateTotal = computed(
+// What the screen shows: the drawer as counted, denomination by denomination.
+// Nouvelle caisse is the caissier's own figure and is typed by hand, so it no
+// longer feeds this.
+const calculateTotal = computed(() => caisseTotal.value)
+
+// What gets filed: the net of the day, as it always has been. It is not shown
+// — the count is the number the caissier is working against.
+const netTotal = computed(
   () => ((parseFloat(calculation.daily) || 0) + (parseFloat(calculation.last) || 0)) - (parseFloat(calculation.charges) || 0) - (parseFloat(calculation.newC) || 0)
 )
 
@@ -128,13 +133,14 @@ const submitCalc = async () => {
       loading.value = true
       const { data } = await axios.post('/calculations', {
         daily: calculation.daily,
-        total: calculateTotal.value,
+        total: netTotal.value,
         charges: calculation.charges,
         // Send the business day key as-is: wrapping it in a Date would turn it
         // back into an instant and reintroduce the timezone shift
         date: calculation.date,
         last: parseFloat(calculation.last),
-        newC: parseFloat(calculation.newC),
+        // Typed by hand now, so round it: the API only accepts whole dirhams
+        newC: Math.round(parseFloat(calculation.newC) || 0),
       },
         {
           headers: {
@@ -157,22 +163,10 @@ const submitCalc = async () => {
 
 const calcTotal = (total) => {
   caisseTotal.value = total
-  if (!manualNewC.value) {
-    calculation.newC = total
-    errors.value.newC = ''
-  }
 }
 
 const resetTotal = () => {
   caisseTotal.value = 0
-  if (!manualNewC.value) calculation.newC = 0
-}
-
-// Hand the count back the field when it has been typed over
-const useCounted = () => {
-  manualNewC.value = false
-  calculation.newC = caisseTotal.value
-  errors.value.newC = ''
 }
 
 onMounted(() => {
@@ -214,7 +208,9 @@ onMounted(() => {
         />
       </div>
 
+      <!-- Nothing counted, nothing to clear -->
       <button
+        v-if="caisseTotal > 0"
         type="button"
         class="ml-auto text-[13px] text-black/55 underline underline-offset-2 hover:text-danger"
         @click="moneyRef?.reset()"
@@ -227,12 +223,11 @@ onMounted(() => {
     <section>
       <Money ref="moneyRef" :show-summary="false" @totalCaisse="calcTotal" @resetCaisse="resetTotal" />
 
-      <!-- Everything the count produces, in one band: what was counted, the
-           figure it fills, and what that leaves to file. -->
+      <!-- One band for what gets filed: the cash left for tomorrow, typed, and
+           the drawer total the count came to. -->
       <footer class="mt-4 px-4 py-4 rounded-xl border border-border bg-gray-light flex flex-wrap items-center gap-x-6 gap-y-4">
-        <!-- The counted total and Nouvelle caisse were the same figure printed
-             twice. Only the field survives: it is what gets filed, and the count
-             writes straight into it. -->
+        <!-- Typed by hand: how much cash stays in the till for tomorrow, which
+             is the caissier's call and not what the drawer happens to hold. -->
         <div class="flex items-center gap-3">
           <label
             class="text-[11px] font-bold uppercase tracking-[.07em]" for="newC"
@@ -248,7 +243,7 @@ onMounted(() => {
               :class="errors.newC ? 'border-danger' : 'border-border'"
               placeholder="0"
               v-model="calculation.newC"
-              @input="manualNewC = true; errors.newC = ''"
+              @input="errors.newC = ''"
             />
             <span class="absolute top-1/2 right-4 -translate-y-1/2 text-black/45">DH</span>
           </div>
@@ -263,17 +258,6 @@ onMounted(() => {
         </div>
 
         <p v-if="errors.newC" class="w-full text-danger text-[13px] -mt-1">{{ errors.newC }}</p>
-
-        <!-- Said once, only when the two have been allowed to drift apart -->
-        <p
-          v-if="manualNewC && Number(calculation.newC) !== caisseTotal"
-          class="w-full rounded-lg bg-yellow/[.18] px-3 py-2 text-[13px] text-[#7a5c00] flex flex-wrap items-center gap-3"
-        >
-          <span>Nouvelle caisse a été saisie à la main et ne suit plus le comptage.</span>
-          <button type="button" class="underline underline-offset-2 font-medium" @click="useCounted">
-            Utiliser le total compté ({{ caisseTotal.toLocaleString('fr-FR') }} DH)
-          </button>
-        </p>
       </footer>
     </section>
   </form>
