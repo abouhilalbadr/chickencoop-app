@@ -13,20 +13,32 @@ export const BUSINESS_TIMEZONE = 'Africa/Casablanca'
 export const BUSINESS_DAY_START_HOUR = 6
 
 // Explicit timezone, so a till whose clock is set wrong still agrees with the API
-const partsFormatter = new Intl.DateTimeFormat('en-US', {
-  timeZone: BUSINESS_TIMEZONE,
+const partsOptions = {
   hourCycle: 'h23',
   year: 'numeric',
   month: '2-digit',
   day: '2-digit',
   hour: '2-digit',
-})
+}
+
+const partsFormatter = new Intl.DateTimeFormat('en-US', { ...partsOptions, timeZone: BUSINESS_TIMEZONE })
+
+/**
+ * Morocco dropped UTC+1 for good on this instant (tzdata 2026c). Browsers and
+ * WebView2 with older tzdata still put Africa/Casablanca an hour ahead, so from
+ * here on the wall clock is read as UTC directly — same rule as the API.
+ */
+export const MOROCCO_UTC_SINCE = Date.UTC(2026, 8, 20, 1, 0, 0)
+
+const utcPartsFormatter = new Intl.DateTimeFormat('en-US', { ...partsOptions, timeZone: 'UTC' })
+
+const formatterFor = (at) => (at.getTime() >= MOROCCO_UTC_SINCE ? utcPartsFormatter : partsFormatter)
 
 const pad = (n) => String(n).padStart(2, '0')
 
 /** Business day of an instant, as 'YYYY-MM-DD'. */
 export const businessDay = (at = new Date()) => {
-  const parts = partsFormatter.formatToParts(at)
+  const parts = formatterFor(at).formatToParts(at)
   const get = (type) => Number(parts.find((p) => p.type === type)?.value)
   const shift = get('hour') < BUSINESS_DAY_START_HOUR ? -1 : 0
   const d = new Date(Date.UTC(get('year'), get('month') - 1, get('day') + shift))
