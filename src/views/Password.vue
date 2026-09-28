@@ -14,11 +14,19 @@ const store = useStore()
 const router = useRouter()
 const loading = ref(false)
 const error = ref('')
-const users = ref([])
 const login = reactive({
-  email: store.type === 'stockage' ? 'charge@chickencoop.ma' : store.type === 'tablet' ? 'tablet@chickencoop.ma' : 'caisse@chickencoop.ma',
+  email: store.type === 'stockage' ? 'charge@chickencoop.ma' : store.type === 'tablet' ? 'tablet@chickencoop.ma' : '',
   password: ''
 })
+
+// The caisse signs in as a named caissier, so every order records who took it.
+// The shared caisse account is no longer offered: the API leaves it out of
+// /public/caissiers.
+const isCaisse = computed(() => store.type === 'caisse')
+const caissiers = ref([])
+const caissiersLoading = ref(false)
+const caissiersError = ref('')
+const caissier = computed(() => caissiers.value.find(user => user.email === login.email) || null)
 
 const post = computed(() => {
   if (store.type === 'stockage') return { label: 'Charges', icon: Cart }
@@ -29,13 +37,37 @@ const post = computed(() => {
 // The pad shows how many digits have been keyed, not the digits themselves
 const dots = computed(() => Math.max(login.password.length, 4))
 
-const getAllCaissiers = async () => {
+const initials = (name) =>
+  (name || '?')
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map(part => part[0].toUpperCase())
+    .join('')
+
+const getCaissiers = async () => {
+  caissiersLoading.value = true
+  caissiersError.value = ''
   try {
     const { data } = await axios.get('/public/caissiers')
-    return data
-  } catch (error) {
-    console.log(error);
+    caissiers.value = data?.users || []
+  } catch (err) {
+    caissiersError.value = 'Impossible de charger la liste des caissiers.'
+  } finally {
+    caissiersLoading.value = false
   }
+}
+
+const selectCaissier = (user) => {
+  error.value = ''
+  login.password = ''
+  login.email = user.email
+}
+
+const changeCaissier = () => {
+  error.value = ''
+  login.password = ''
+  login.email = ''
 }
 
 const deleteNum = () => {
@@ -51,7 +83,7 @@ const reset = () => {
   login.password = ''
 }
 const validatePass = async () => {
-  if (!login.password) return
+  if (!login.password || !login.email) return
   try {
     error.value = ''
     loading.value = true
@@ -78,15 +110,8 @@ const returnBack = () => {
   router.push('/')
 }
 
-onMounted(async () => {
-  if (store.type === 'caisse') {
-    const caissiers = await getAllCaissiers()
-    users.value = caissiers?.users || []
-    // Default to the first caissier's email if available
-    if (!login.email && users.value?.length) {
-      login.email = users.value[0].email
-    }
-  }
+onMounted(() => {
+  if (isCaisse.value) getCaissiers()
 })
 </script>
 
@@ -100,15 +125,78 @@ onMounted(async () => {
       <span>Retour</span>
     </button>
 
-    <div class="w-full max-w-[460px] bg-white border border-black/[.07] rounded-xl shadow-sm overflow-hidden">
+    <!-- Caisse, step one: who is working this till? -->
+    <div
+      v-if="isCaisse && !caissier"
+      class="w-full max-w-[620px] bg-white border border-black/[.07] rounded-xl shadow-sm overflow-hidden"
+    >
       <div class="flex items-center gap-3 px-5 h-[76px] border-b border-border">
         <span class="w-12 h-12 rounded-lg bg-main/[.10] flex items-center justify-center">
           <component :is="post.icon" class="h-7 fill-main" />
         </span>
         <div>
           <h1 class="font-bree-serif text-xl leading-tight">{{ post.label }}</h1>
+          <p class="text-black/50 text-sm">Qui est à la caisse ?</p>
+        </div>
+      </div>
+
+      <div class="p-5">
+        <div v-if="caissiersLoading" class="grid grid-cols-2 gap-3">
+          <div v-for="n in 2" :key="n" class="h-[120px] rounded-xl bg-gray-light animate-pulse" />
+        </div>
+
+        <div v-else-if="caissiersError || caissiers.length === 0" class="flex flex-col items-center gap-4 py-8 text-center">
+          <p class="text-black/60">
+            {{ caissiersError || "Aucun caissier n'est enregistré. Ajoutez-en un depuis l'administration." }}
+          </p>
+          <button
+            @click="getCaissiers"
+            class="h-12 px-6 rounded-lg bg-white border border-border transition-colors hover:bg-gray-light"
+          >
+            Réessayer
+          </button>
+        </div>
+
+        <div v-else class="grid grid-cols-2 gap-3">
+          <button
+            v-for="user in caissiers"
+            :key="user.email"
+            @click="selectCaissier(user)"
+            class="h-[120px] rounded-xl border border-border bg-white flex flex-col items-center justify-center gap-2.5 px-3
+              transition-colors hover:bg-gray-light active:bg-main/10 active:border-main"
+          >
+            <span class="w-14 h-14 rounded-full bg-main/[.12] text-main font-bree-serif text-xl flex items-center justify-center">
+              {{ initials(user.name) }}
+            </span>
+            <span class="text-lg font-medium leading-tight truncate max-w-full">{{ user.name || user.email }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- The code pad: for the caisse, once a caissier is picked -->
+    <div v-else class="w-full max-w-[460px] bg-white border border-black/[.07] rounded-xl shadow-sm overflow-hidden">
+      <div class="flex items-center gap-3 px-5 h-[76px] border-b border-border">
+        <span
+          v-if="caissier"
+          class="w-12 h-12 rounded-full bg-main/[.12] text-main font-bree-serif text-lg flex items-center justify-center"
+        >
+          {{ initials(caissier.name) }}
+        </span>
+        <span v-else class="w-12 h-12 rounded-lg bg-main/[.10] flex items-center justify-center">
+          <component :is="post.icon" class="h-7 fill-main" />
+        </span>
+        <div class="min-w-0">
+          <h1 class="font-bree-serif text-xl leading-tight truncate">{{ caissier ? caissier.name || caissier.email : post.label }}</h1>
           <p class="text-black/50 text-sm">Entrez le code d'accès</p>
         </div>
+        <button
+          v-if="caissier"
+          @click="changeCaissier"
+          class="ml-auto h-10 px-4 rounded-lg border border-border text-sm transition-colors hover:bg-gray-light"
+        >
+          Changer
+        </button>
       </div>
 
       <div class="p-5 flex flex-col gap-4">

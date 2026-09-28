@@ -22,7 +22,12 @@ const router = createRouter({
 
 router.beforeEach((to, from) => {
   const store = useStore()
-  const url = store?.user?.name === 'Charge' ? '/stockage' : store?.user?.name === 'Caisse' ? '/caisse' : '/tablet'
+  // Caissiers sign in under their own names, so the post is read from the
+  // account's role and email, not from its display name.
+  const user = store?.user
+  const url = user?.role === 'STOCK' || user?.name === 'Charge'
+    ? '/stockage'
+    : user?.email === 'tablet@chickencoop.ma' || user?.name === 'Tablet' ? '/tablet' : '/caisse'
   if (store?.user && (to.path === '/' || to.path === '/password')) {
     return url
   }
