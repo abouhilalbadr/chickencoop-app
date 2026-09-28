@@ -33,8 +33,8 @@ let timer
 const time = computed(() => now.value.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }))
 
 const postIcon = computed(() => {
-  if (store?.user?.name === 'Charge') return Cart
-  if (store?.user?.name === 'Tablet') return Tablet
+  if (store?.user?.role === 'STOCK' || store?.user?.name === 'Charge') return Cart
+  if (store?.user?.email === 'tablet@chickencoop.ma' || store?.user?.name === 'Tablet') return Tablet
   return Cash
 })
 
