@@ -19,7 +19,8 @@ const getCharge = async () => {
         'Authorization': `Bearer ${props.token}`
       }
     })
-    rows.value = data.data
+    // Charges the owner paid, entered from the back office, never left the till
+    rows.value = data.data.filter((row) => row.paidFrom !== 'PATRON')
     loading.value = false
   } catch (error) {
     loading.value = false
@@ -63,11 +64,8 @@ const detail = (item) => {
   return item.supplier
 }
 
-// What left the till today, which is what the cash count takes off;
-// what the patron paid is shown apart so the two never get mixed
-const sum = (list) => Math.round(list.reduce((total, row) => total + (Number(row.price) || 0), 0) * 100) / 100
-const total = computed(() => sum(rows.value.filter((row) => row.paidFrom !== 'PATRON')))
-const patronTotal = computed(() => sum(rows.value.filter((row) => row.paidFrom === 'PATRON')))
+// What left the till today, which is what the cash count takes off
+const total = computed(() => Math.round(rows.value.reduce((sum, row) => sum + (Number(row.price) || 0), 0) * 100) / 100)
 
 onMounted(() => {
   getCharge()
@@ -91,7 +89,6 @@ onMounted(() => {
             <tr class="bg-gray-light text-left">
               <th class="px-4 py-2.5 text-[11px] font-bold uppercase tracking-[.07em] text-black/55">Type</th>
               <th class="px-4 py-2.5 text-[11px] font-bold uppercase tracking-[.07em] text-black/55">Détail</th>
-              <th class="px-4 py-2.5 text-[11px] font-bold uppercase tracking-[.07em] text-black/55">Payé par</th>
               <th class="px-4 py-2.5 text-[11px] font-bold uppercase tracking-[.07em] text-black/55">Date</th>
               <th class="px-4 py-2.5 text-[11px] font-bold uppercase tracking-[.07em] text-black/55 text-right">Montant</th>
             </tr>
@@ -110,7 +107,6 @@ onMounted(() => {
                 <p class="font-medium">{{ title(item) }}</p>
                 <p v-if="detail(item)" class="text-[12.5px] text-black/55">{{ detail(item) }}</p>
               </td>
-              <td class="px-4 py-3 text-black/65">{{ item.paidFrom === 'PATRON' ? 'Le patron' : 'La caisse' }}</td>
               <td class="px-4 py-3 text-black/55">{{ format(item.date) }}</td>
               <td class="px-4 py-3 text-right"><Amount :value="item.price" /></td>
             </tr>
@@ -118,14 +114,9 @@ onMounted(() => {
         </table>
       </div>
 
-      <div class="flex flex-col items-end gap-1 px-1">
-        <div class="flex items-baseline gap-3">
-          <span class="text-black/55">Sorti de la caisse</span>
-          <Amount :value="total" size="total" tone="brand" />
-        </div>
-        <p v-if="patronTotal" class="text-sm text-black/55">
-          + <Amount :value="patronTotal" /> payés par le patron
-        </p>
+      <div class="flex items-baseline justify-end gap-3 px-1">
+        <span class="text-black/55">Total des charges</span>
+        <Amount :value="total" size="total" tone="brand" />
       </div>
     </template>
   </div>
