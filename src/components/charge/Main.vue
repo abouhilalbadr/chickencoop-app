@@ -45,6 +45,11 @@ const DEPENSES = {
   LOYER: 'Loyer', ELECTRICITE: 'Électricité', EAU: 'Eau', INTERNET: 'Internet',
 }
 const UNITS = { Kg: 'kg', l: 'l', P: 'pièce' }
+const plural = (word, n) =>
+  Math.abs(Number(n)) >= 2 && word && !/[sxz]$/.test(word) ? word + (/(au|eu)$/.test(word) ? 'x' : 's') : word
+const num = (n) => Number(n || 0).toLocaleString('fr-FR', { maximumFractionDigits: 3 })
+// kg and l never take an s: 48 pièces, 2,5 kg
+const unitText = (type, n) => (type === 'P' ? plural('pièce', n) : UNITS[type] || '')
 
 // What was paid for, in the words of each kind; rows saved before the kinds
 // existed keep their supplier and product as typed
@@ -56,7 +61,9 @@ const title = (item) => {
 }
 const detail = (item) => {
   if (item.kind === 'STOCK') {
-    const qty = `${Number(item.size || 0).toLocaleString('fr-FR', { maximumFractionDigits: 3 })} ${UNITS[item.stock?.type] || ''}`.trim()
+    const units = `${num(item.size)} ${unitText(item.stock?.type, item.size)}`.trim()
+    // Typed in packs: « 2 paquets (48 pièces) »
+    const qty = item.packs ? `${num(item.packs)} ${plural(item.stock?.packLabel || 'paquet', item.packs)} (${units})` : units
     return [item.stock?.ref, qty, item.supplier].filter(Boolean).join(' · ')
   }
   if (item.kind === 'DEPENSE') return item.product && item.product !== item.name ? item.product : ''
