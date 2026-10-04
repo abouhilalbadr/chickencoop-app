@@ -3,6 +3,7 @@ import { ref, onMounted, computed } from 'vue'
 import axios from 'axios'
 
 import Amount from '../ui/Money.vue'
+import Badge from '../ui/Badge.vue'
 
 const props = defineProps(['token'])
 const emit = defineEmits(['edit'])
@@ -32,8 +33,41 @@ const format = (date) => {
   return sTitle[0] + " " + monthNames[month] + " " + sTitle[2]
 }
 
-// What the post actually wants to know at a glance: what today has cost
-const total = computed(() => rows.value.reduce((sum, row) => sum + (Number(row.price) || 0), 0))
+const KIND = {
+  STOCK: { label: 'Achat stock', tone: 'brand' },
+  DEPENSE: { label: 'Dépense', tone: 'neutral' },
+  AVANCE: { label: 'Avance', tone: 'warning' },
+  SALAIRE: { label: 'Salaire', tone: 'warning' },
+}
+const DEPENSES = {
+  GAZ: 'Gaz', TRANSPORT: 'Transport / essence', NETTOYAGE: 'Nettoyage', MATERIEL: 'Petit matériel', AUTRE: 'Autre',
+  LOYER: 'Loyer', ELECTRICITE: 'Électricité', EAU: 'Eau', INTERNET: 'Internet',
+}
+const UNITS = { Kg: 'kg', l: 'l', P: 'pièce' }
+
+// What was paid for, in the words of each kind; rows saved before the kinds
+// existed keep their supplier and product as typed
+const title = (item) => {
+  if (item.kind === 'STOCK') return item.stock?.name || item.product
+  if (item.kind === 'DEPENSE') return DEPENSES[item.category] || item.name
+  if (item.kind === 'AVANCE' || item.kind === 'SALAIRE') return item.staff?.name || item.product
+  return item.product
+}
+const detail = (item) => {
+  if (item.kind === 'STOCK') {
+    const qty = `${Number(item.size || 0).toLocaleString('fr-FR', { maximumFractionDigits: 3 })} ${UNITS[item.stock?.type] || ''}`.trim()
+    return [item.stock?.ref, qty, item.supplier].filter(Boolean).join(' · ')
+  }
+  if (item.kind === 'DEPENSE') return item.product && item.product !== item.name ? item.product : ''
+  if (item.kind) return ''
+  return item.supplier
+}
+
+// What left the till today, which is what the cash count takes off;
+// what the patron paid is shown apart so the two never get mixed
+const sum = (list) => Math.round(list.reduce((total, row) => total + (Number(row.price) || 0), 0) * 100) / 100
+const total = computed(() => sum(rows.value.filter((row) => row.paidFrom !== 'PATRON')))
+const patronTotal = computed(() => sum(rows.value.filter((row) => row.paidFrom === 'PATRON')))
 
 onMounted(() => {
   getCharge()
@@ -55,30 +89,43 @@ onMounted(() => {
         <table class="w-full text-sm">
           <thead>
             <tr class="bg-gray-light text-left">
-              <th class="px-4 py-2.5 text-[11px] font-bold uppercase tracking-[.07em] text-black/55">Fournisseur</th>
-              <th class="px-4 py-2.5 text-[11px] font-bold uppercase tracking-[.07em] text-black/55">Produit</th>
+              <th class="px-4 py-2.5 text-[11px] font-bold uppercase tracking-[.07em] text-black/55">Type</th>
+              <th class="px-4 py-2.5 text-[11px] font-bold uppercase tracking-[.07em] text-black/55">Détail</th>
+              <th class="px-4 py-2.5 text-[11px] font-bold uppercase tracking-[.07em] text-black/55">Payé par</th>
               <th class="px-4 py-2.5 text-[11px] font-bold uppercase tracking-[.07em] text-black/55">Date</th>
               <th class="px-4 py-2.5 text-[11px] font-bold uppercase tracking-[.07em] text-black/55 text-right">Montant</th>
             </tr>
           </thead>
           <tbody>
             <tr
-              v-for="(item, i) in rows"
-              :key="i"
+              v-for="item in rows"
+              :key="item.id"
               class="border-t border-border even:bg-gray-light/60 hover:bg-main/[.05]"
             >
-              <td class="px-4 py-3 font-medium">{{ item.supplier }}</td>
-              <td class="px-4 py-3 text-black/75">{{ item.product }}</td>
+              <td class="px-4 py-3">
+                <Badge v-if="KIND[item.kind]" :tone="KIND[item.kind].tone">{{ KIND[item.kind].label }}</Badge>
+                <span v-else class="font-medium">{{ item.supplier }}</span>
+              </td>
+              <td class="px-4 py-3">
+                <p class="font-medium">{{ title(item) }}</p>
+                <p v-if="detail(item)" class="text-[12.5px] text-black/55">{{ detail(item) }}</p>
+              </td>
+              <td class="px-4 py-3 text-black/65">{{ item.paidFrom === 'PATRON' ? 'Le patron' : 'La caisse' }}</td>
               <td class="px-4 py-3 text-black/55">{{ format(item.date) }}</td>
-              <td class="px-4 py-3 text-right"><Amount :value="item.price" :decimals="false" /></td>
+              <td class="px-4 py-3 text-right"><Amount :value="item.price" /></td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <div class="flex items-baseline justify-end gap-3 px-1">
-        <span class="text-black/55">Total des charges</span>
-        <Amount :value="total" size="total" tone="brand" :decimals="false" />
+      <div class="flex flex-col items-end gap-1 px-1">
+        <div class="flex items-baseline gap-3">
+          <span class="text-black/55">Sorti de la caisse</span>
+          <Amount :value="total" size="total" tone="brand" />
+        </div>
+        <p v-if="patronTotal" class="text-sm text-black/55">
+          + <Amount :value="patronTotal" /> payés par le patron
+        </p>
       </div>
     </template>
   </div>

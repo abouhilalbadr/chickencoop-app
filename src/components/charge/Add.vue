@@ -1,227 +1,355 @@
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+/**
+ * A charge paid at the till, in three kinds, one tab each:
+ *  - Achat stock: an article from the stock list, its quantity and what was
+ *    paid. The quantity goes into stock and the price becomes the article's.
+ *  - Dépense: a running cost (gaz, transport, nettoyage…).
+ *  - Avance: money advanced to someone on the staff list.
+ * Each says who paid, so the day's cash count only takes off what left the till.
+ */
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import axios from 'axios'
 
 import AppButton from '../ui/AppButton.vue'
+import Choice from '../ui/Choice.vue'
 
 const props = defineProps(['token'])
 const emit = defineEmits(['saved'])
+const auth = () => ({ headers: { Authorization: `Bearer ${props.token}` } })
 
-const charge = reactive({
-  supplier: '',
-  product: '',
-  price: '',
-  size: '',
-})
+const KINDS = [
+  { key: 'STOCK', label: 'Achat stock' },
+  { key: 'DEPENSE', label: 'Dépense' },
+  { key: 'AVANCE', label: 'Avance' },
+]
+// Day-to-day costs only: the monthly bills are entered from the back office
+const DEPENSES = [
+  { value: 'GAZ', label: 'Gaz' },
+  { value: 'TRANSPORT', label: 'Transport / essence' },
+  { value: 'NETTOYAGE', label: 'Nettoyage' },
+  { value: 'MATERIEL', label: 'Petit matériel' },
+  { value: 'AUTRE', label: 'Autre' },
+]
+const SUPPLIERS = ['Favorita', 'Boucherie', 'Boulangerie', 'Pesserie', 'Légumes', 'Fruits', 'Poulet', 'Coca-Cola', 'Boissons', 'Emballage', 'Huile', 'Autre']
+const CATEGORIES = [
+  { value: 'BOI', label: 'Boissons' }, { value: 'SAU', label: 'Sauces' }, { value: 'EMB', label: 'Emballage' },
+  { value: 'EPI', label: 'Épicerie' }, { value: 'SUR', label: 'Surgelés' }, { value: 'PAI', label: 'Pains & pâtes' },
+  { value: 'FRO', label: 'Fromages' }, { value: 'CRE', label: 'Crèmerie' }, { value: 'VIA', label: 'Viandes' },
+  { value: 'CHA', label: 'Charcuterie' }, { value: 'POI', label: 'Poisson' }, { value: 'EPC', label: 'Épices' },
+  { value: 'LEG', label: 'Légumes' }, { value: 'FRU', label: 'Fruits' },
+]
+const UNITS = { Kg: 'kg', l: 'l', P: 'pièce' }
+
+const kind = ref('STOCK')
+const stocks = ref([])
+const staff = ref([])
 const loading = ref(false)
-const errors = ref({
+const formError = ref('')
+const errors = reactive({})
+
+const form = reactive({
+  // Achat stock
+  search: '',
+  stock: null,
+  isNew: false,
+  newName: '',
+  newCategory: '',
+  newType: 'Kg',
   supplier: '',
-  product: '',
-  price: '',
   size: '',
+  // Dépense
+  category: '',
+  note: '',
+  // Avance
+  staffId: null,
+  // All
+  price: '',
+  paidFrom: 'CAISSE',
 })
-const products = ref([])
 
-const suppliers = [
-  { name: "Boulangerie", value: "Pièce" },
-  { name: "Favorita", value: "Total" },
-  { name: "Boucherie", value: "Kg" },
-  { name: "Pesserie", value: "Total" },
-  { name: "Gaz", value: "Pièce" },
-  { name: "Huile", value: "Litre" },
-  { name: "Emballage", value: "Pièce" },
-  { name: "Légumes", value: "Kg" },
-  { name: "Fruits", value: "Kg" },
-  { name: "Station d'essence", value: "Total" },
-  { name: "Avance", value: "Total" },
-  { name: "Poulet", value: "Kg" },
-  { name: "Coca-Cola", value: "Pièce" },
-  { name: "Boissons", value: "Pièce" },
-  { name: "Facture Électricité", value: "Total" },
-  { name: "Facture Eau", value: "Total" },
-  { name: "Facture internet", value: "Total" },
-  { name: "Autre", value: "Total" },
-]
+onMounted(async () => {
+  const [stockRes, staffRes] = await Promise.allSettled([
+    axios.get('/stocks', auth()),
+    axios.get('/staff', auth()),
+  ])
+  if (stockRes.status === 'fulfilled') stocks.value = stockRes.value.data.data
+  if (staffRes.status === 'fulfilled') staff.value = staffRes.value.data.data
+})
 
-const oldProducts = [
-  "Crème fraîche pro",
-  "cheddar",
-  "Pizzarella premuim bloc",
-  "Pain burger",
-  "Sauce burger",
-  "Ketchup",
-  "Fromage bleu",
-  "Cornichon",
-  "Nugget poulet pané",
-  "Hit sauce",
-  "Cordon bleu pané",
-  "Pain tacos",
-  "Haricot rouge",
-  "Fun fries (frites) 7/7",
-  "Sauce burger",
-  "Sauce Algériene",
-  "Huile piquante"
-]
+// Switching tabs keeps the amount and who paid, and clears the old tab's errors
+watch(kind, () => {
+  Object.keys(errors).forEach((k) => delete errors[k])
+  formError.value = ''
+})
 
-const getChargeProducts = async () => {
-  try {
-    const { data } = await axios.get('/chargeProducts/active', {
-      headers: {
-        'Authorization': `Bearer ${props.token}`
-      }
-    })
-    products.value = data.data
-    loading.value = false
-  } catch (error) {
-    loading.value = false
+// « 84,50 » and « 84.5 » are the same amount
+const parseAmount = (value) => {
+  const text = String(value ?? '').replace(/\s/g, '').replace(',', '.')
+  return text === '' ? NaN : Number(text)
+}
+const fmt = (n, digits = 2) => Number(n || 0).toLocaleString('fr-FR', { minimumFractionDigits: digits, maximumFractionDigits: digits })
+const fmtQty = (n) => Number(n || 0).toLocaleString('fr-FR', { maximumFractionDigits: 3 })
+
+// Article search: names starting with what was typed first, then names
+// containing it, then refs — « frites » finds Frites before Sachet frites
+const normalize = (v) => String(v || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+const matches = computed(() => {
+  const q = normalize(form.search).trim()
+  if (!q || form.stock) return []
+  const rank = (s) => {
+    const name = normalize(s.name)
+    if (name.startsWith(q)) return 0
+    if (name.includes(q)) return 1
+    if (normalize(s.ref).includes(q)) return 2
+    return -1
   }
+  return stocks.value
+    .map((s) => ({ s, r: rank(s) }))
+    .filter((x) => x.r >= 0)
+    .sort((a, b) => a.r - b.r || a.s.name.length - b.s.name.length)
+    .slice(0, 6)
+    .map((x) => x.s)
+})
+
+const pick = (stock) => {
+  form.stock = stock
+  form.search = ''
+  delete errors.stock
 }
 
-const validateInputs = () => {
-  let isValid = true
-  if (!charge.supplier) {
-    isValid = false
-    errors.value.supplier = 'Le fournisseur est requis'
-  }
-  if (!charge.product) {
-    isValid = false
-    errors.value.product = 'Le produit est requis'
-  }
-  if (!charge.price) {
-    isValid = false
-    errors.value.price = 'Le montant est requis'
-  }
-  if (!charge.size) {
-    isValid = false
-    errors.value.size = 'La quantité est requise'
-  }
-  return isValid
+const unit = computed(() => UNITS[form.isNew ? form.newType : form.stock?.type] || '')
 
+const perUnit = computed(() => {
+  const size = parseAmount(form.size)
+  const price = parseAmount(form.price)
+  if (kind.value !== 'STOCK' || !(size > 0) || !(price > 0)) return ''
+  return `${fmt(price / size)} DH / ${unit.value || 'unité'}`
+})
+
+const stockAfter = computed(() => {
+  const size = parseAmount(form.size)
+  if (!form.stock || form.isNew || !(size > 0)) return ''
+  return `Stock ${fmtQty(form.stock.quantity)} → ${fmtQty(form.stock.quantity + size)} ${unit.value}`
+})
+
+const validate = () => {
+  Object.keys(errors).forEach((k) => delete errors[k])
+  if (kind.value === 'STOCK') {
+    if (form.isNew) {
+      if (form.newName.trim().length < 2) errors.newName = "Le nom de l'article est requis"
+      if (!form.newCategory) errors.newCategory = 'La catégorie est requise'
+    } else if (!form.stock) errors.stock = 'Choisissez un article'
+    if (!(parseAmount(form.size) > 0)) errors.size = 'Quantité invalide'
+    if (!form.supplier) errors.supplier = 'Le fournisseur est requis'
+  }
+  if (kind.value === 'DEPENSE' && !form.category) errors.category = 'Choisissez la dépense'
+  if (kind.value === 'AVANCE' && !form.staffId) errors.staffId = "Choisissez l'employé"
+  if (!(parseAmount(form.price) > 0)) errors.price = 'Montant invalide'
+  return Object.keys(errors).length === 0
+}
+
+const body = () => {
+  const common = { kind: kind.value, date: new Date(), price: parseAmount(form.price), paidFrom: form.paidFrom }
+  if (kind.value === 'DEPENSE') {
+    return { ...common, category: form.category, ...(form.note.trim() && { product: form.note.trim() }) }
+  }
+  if (kind.value === 'AVANCE') return { ...common, staffId: form.staffId }
+  return {
+    ...common,
+    supplier: form.supplier,
+    size: parseAmount(form.size),
+    ...(form.isNew
+      ? { newStock: { name: form.newName.trim(), category: form.newCategory, type: form.newType } }
+      : { stockId: form.stock.id }),
+  }
 }
 
 const submitCharge = async () => {
+  formError.value = ''
+  if (!validate()) return
+  loading.value = true
   try {
-    const result = validateInputs()
-    if (result) {
-      loading.value = true
-      const { data } = await axios.post('/charge', {
-        name: charge.supplier,
-        supplier: charge.supplier,
-        product: charge.product,
-        date: new Date(),
-        price: parseInt(charge.price),
-        size: parseInt(charge.size),
-      },
-        {
-          headers: {
-            'Authorization': `Bearer ${props.token}`
-          }
-        }
-      )
-      if (data?.data?.name) {
-        // The dialog closes and the table refetches; reloading the whole app
-        // for one row also threw away the session's cart on the till
-        charge.supplier = ''
-        charge.product = ''
-        charge.price = ''
-        charge.size = ''
-        loading.value = false
-        emit('saved', data.data)
+    const { data } = await axios.post('/charge', body(), auth())
+    emit('saved', data.data)
+  } catch (error) {
+    // The new article already exists: pick it instead of adding it twice
+    const existing = error?.response?.status === 409 && error.response.data?.data
+    if (existing) {
+      const match = stocks.value.find((s) => s.id === existing.id)
+      if (match) {
+        form.isNew = false
+        pick(match)
       }
     }
-  } catch (error) {
-    alert("Échec de la création du charge, veuillez réessayer")
+    formError.value = error?.response?.data?.message || "Échec de l'enregistrement, veuillez réessayer"
+  } finally {
     loading.value = false
   }
 }
 
-const unite = computed(() => {
-  const supplier = suppliers.find(s => s.name === charge.supplier)
-  if (supplier) {
-    return supplier.value
-  }
-  return 'Total'
-})
-
-onMounted(() => {
-  getChargeProducts()
-})
-
+const label = 'text-[11px] font-bold uppercase tracking-[.07em]'
+const input = 'h-12 px-3 w-full border rounded-lg outline-none bg-white focus:border-main focus:ring-[3px] focus:ring-main/[.15]'
 </script>
+
 <template>
-  <form @submit.prevent="submitCharge" class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-    <div class="flex flex-col gap-1.5">
-      <label class="text-[11px] font-bold uppercase tracking-[.07em]" for="supplier"
-        :class="errors.supplier ? 'text-danger' : 'text-black/50'">
-        Fournisseur
-      </label>
-      <select id="supplier" class="h-12 px-3 w-full border rounded-lg outline-none bg-white
-          focus:border-main focus:ring-[3px] focus:ring-main/[.15]"
-        :class="errors.supplier ? 'border-danger' : 'border-border'" v-model="charge.supplier"
-        @input="errors.supplier = ''">
-        <option value="" disabled selected>Choisir un fournisseur</option>
-        <option v-for="(supplier, i) in suppliers" :key="i" :value="supplier.name">
-          {{ supplier.name }}
-        </option>
-      </select>
-      <span v-if="errors.supplier" class="text-danger text-xs">
-        {{ errors.supplier }}
-      </span>
+  <form class="flex flex-col gap-5" @submit.prevent="submitCharge">
+    <!-- Kind -->
+    <div class="grid grid-cols-3 gap-1 p-1 rounded-xl bg-gray-light">
+      <button
+        v-for="k in KINDS"
+        :key="k.key"
+        type="button"
+        class="h-11 rounded-lg text-[15px] font-medium transition-colors"
+        :class="kind === k.key ? 'bg-white text-black shadow-sm' : 'text-black/55 hover:text-black'"
+        @click="kind = k.key"
+      >
+        {{ k.label }}
+      </button>
     </div>
 
-    <div class="flex flex-col gap-1.5">
-      <label class="text-[11px] font-bold uppercase tracking-[.07em]" for="product"
-        :class="errors.product ? 'text-danger' : 'text-black/50'">
-        Produit
-      </label>
-      <input type="text" id="product" class="h-12 px-3 w-full border rounded-lg outline-none
-          focus:border-main focus:ring-[3px] focus:ring-main/[.15]"
-        :class="errors.product ? 'border-danger' : 'border-border'" placeholder="Produit"
-        v-model="charge.product" @input="errors.product = ''" />
-      <span v-if="errors.product" class="text-danger text-xs">
-        {{ errors.product }}
-      </span>
-    </div>
-
-    <div class="flex flex-col gap-1.5">
-      <label class="text-[11px] font-bold uppercase tracking-[.07em]" for="size"
-        :class="errors.size ? 'text-danger' : 'text-black/50'">
-        Quantité
-      </label>
-      <!-- The unit rides inside the field: it is what the quantity is counted
-           in, not a separate green button. -->
-      <div class="relative">
-        <input type="text" id="size" class="h-12 pl-3 pr-24 w-full border rounded-lg outline-none tabular-nums
-            focus:border-main focus:ring-[3px] focus:ring-main/[.15]"
-          :class="errors.size ? 'border-danger' : 'border-border'" placeholder="2"
-          v-model="charge.size" @input="errors.size = ''" />
-        <span class="absolute top-1/2 right-1.5 -translate-y-1/2 px-3 h-9 rounded-md bg-gray-light text-black/65 text-sm flex items-center">
-          {{ unite }}
-        </span>
+    <!-- Achat stock -->
+    <template v-if="kind === 'STOCK'">
+      <div v-if="!form.isNew" class="flex flex-col gap-1.5">
+        <label :class="[label, errors.stock ? 'text-danger' : 'text-black/50']">Article</label>
+        <div v-if="form.stock" class="h-12 px-3 border border-main rounded-lg flex items-center gap-3 bg-main/[.05]">
+          <span class="font-mono text-[13px] text-black/50">{{ form.stock.ref }}</span>
+          <span class="font-medium">{{ form.stock.name }}</span>
+          <button type="button" class="ml-auto text-sm text-black/55 hover:text-main" @click="form.stock = null">Changer</button>
+        </div>
+        <div v-else class="relative">
+          <input v-model="form.search" type="text" :class="[input, errors.stock ? 'border-danger' : 'border-border']" placeholder="Chercher : frites, SUR-001…" autocomplete="off">
+          <div v-if="matches.length" class="absolute z-10 left-0 right-0 mt-1 bg-white border border-border rounded-lg shadow-lg overflow-hidden">
+            <button
+              v-for="s in matches"
+              :key="s.id"
+              type="button"
+              class="w-full h-12 px-3 flex items-center gap-3 text-left border-t border-border first:border-t-0 hover:bg-gray-light"
+              @click="pick(s)"
+            >
+              <span class="font-mono text-[13px] text-black/50 w-[64px]">{{ s.ref }}</span>
+              <span class="font-medium">{{ s.name }}</span>
+              <span class="ml-auto text-xs text-black/45">{{ UNITS[s.type] }}</span>
+            </button>
+          </div>
+          <p v-else-if="form.search.trim().length > 1" class="text-[13px] text-black/55 mt-1.5">Aucun article trouvé.</p>
+        </div>
+        <span v-if="errors.stock" class="text-danger text-xs">{{ errors.stock }}</span>
+        <button type="button" class="self-start text-[13px] text-black/55 hover:text-main underline underline-offset-2" @click="form.isNew = true; form.newName = form.search">
+          Article absent du stock ?
+        </button>
       </div>
-      <span v-if="errors.size" class="text-danger text-xs">
-        {{ errors.size }}
-      </span>
-    </div>
 
-    <div class="flex flex-col gap-1.5">
-      <label class="text-[11px] font-bold uppercase tracking-[.07em]" for="price"
-        :class="errors.price ? 'text-danger' : 'text-black/50'">
-        Montant
-      </label>
+      <div v-else class="flex flex-col gap-3 border border-dashed border-border rounded-xl p-3">
+        <div class="flex items-center justify-between">
+          <span class="font-medium">Nouvel article</span>
+          <button type="button" class="text-[13px] text-black/55 hover:text-main" @click="form.isNew = false">Choisir dans le stock</button>
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label :class="[label, errors.newName ? 'text-danger' : 'text-black/50']">Nom</label>
+          <input v-model="form.newName" type="text" :class="[input, errors.newName ? 'border-danger' : 'border-border']" placeholder="Vinaigre">
+          <span v-if="errors.newName" class="text-danger text-xs">{{ errors.newName }}</span>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="flex flex-col gap-1.5">
+            <label :class="[label, errors.newCategory ? 'text-danger' : 'text-black/50']">Catégorie</label>
+            <select v-model="form.newCategory" :class="[input, errors.newCategory ? 'border-danger' : 'border-border']">
+              <option value="" disabled>Choisir</option>
+              <option v-for="c in CATEGORIES" :key="c.value" :value="c.value">{{ c.label }}</option>
+            </select>
+          </div>
+          <div class="flex flex-col gap-1.5">
+            <label :class="[label, 'text-black/50']">Compté en</label>
+            <div class="grid grid-cols-3 gap-2">
+              <Choice v-for="(text, code) in UNITS" :key="code" size="md" block :selected="form.newType === code" @click="form.newType = code">{{ text }}</Choice>
+            </div>
+          </div>
+        </div>
+        <p class="text-[12.5px] text-black/50">L'article est ajouté au stock et sera vérifié depuis le back office.</p>
+      </div>
+
+      <div class="flex flex-col gap-1.5">
+        <label :class="[label, errors.supplier ? 'text-danger' : 'text-black/50']">Fournisseur</label>
+        <div class="flex flex-wrap gap-2">
+          <Choice v-for="s in SUPPLIERS" :key="s" size="sm" :selected="form.supplier === s" @click="form.supplier = s; delete errors.supplier">{{ s }}</Choice>
+        </div>
+        <span v-if="errors.supplier" class="text-danger text-xs">{{ errors.supplier }}</span>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="flex flex-col gap-1.5">
+          <label :class="[label, errors.size ? 'text-danger' : 'text-black/50']">Quantité</label>
+          <div class="relative">
+            <input v-model="form.size" type="text" inputmode="decimal" :class="[input, 'pr-20 tabular-nums', errors.size ? 'border-danger' : 'border-border']" placeholder="12,5">
+            <span class="absolute top-1/2 right-1.5 -translate-y-1/2 px-3 h-9 rounded-md bg-gray-light text-black/65 text-sm flex items-center">{{ unit || '—' }}</span>
+          </div>
+          <span v-if="errors.size" class="text-danger text-xs">{{ errors.size }}</span>
+          <span v-else-if="stockAfter" class="text-xs text-black/50">{{ stockAfter }}</span>
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label :class="[label, errors.price ? 'text-danger' : 'text-black/50']">Montant payé</label>
+          <div class="relative">
+            <input v-model="form.price" type="text" inputmode="decimal" :class="[input, 'pr-14 tabular-nums', errors.price ? 'border-danger' : 'border-border']" placeholder="275">
+            <span class="absolute top-1/2 right-3 -translate-y-1/2 text-black/45 text-sm">DH</span>
+          </div>
+          <span v-if="errors.price" class="text-danger text-xs">{{ errors.price }}</span>
+          <span v-else-if="perUnit" class="text-xs text-second">= {{ perUnit }}</span>
+        </div>
+      </div>
+    </template>
+
+    <!-- Dépense -->
+    <template v-else-if="kind === 'DEPENSE'">
+      <div class="flex flex-col gap-1.5">
+        <label :class="[label, errors.category ? 'text-danger' : 'text-black/50']">Dépense</label>
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          <Choice v-for="c in DEPENSES" :key="c.value" block :selected="form.category === c.value" @click="form.category = c.value; delete errors.category">{{ c.label }}</Choice>
+        </div>
+        <span v-if="errors.category" class="text-danger text-xs">{{ errors.category }}</span>
+      </div>
+      <div class="flex flex-col gap-1.5">
+        <label :class="[label, 'text-black/50']">Note (facultatif)</label>
+        <input v-model="form.note" type="text" maxlength="100" :class="[input, 'border-border']" placeholder="Bouteille de gaz, taxi marché…">
+      </div>
+    </template>
+
+    <!-- Avance -->
+    <template v-else>
+      <div class="flex flex-col gap-1.5">
+        <label :class="[label, errors.staffId ? 'text-danger' : 'text-black/50']">Employé</label>
+        <div v-if="staff.length" class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          <Choice v-for="p in staff" :key="p.id" block :selected="form.staffId === p.id" @click="form.staffId = p.id; delete errors.staffId">{{ p.name }}</Choice>
+        </div>
+        <p v-else class="border border-dashed border-border rounded-lg px-3 py-4 text-sm text-black/55">
+          Aucun employé dans la liste. Le personnel s'ajoute depuis le back office (Charges › Salaires &amp; avances).
+        </p>
+        <span v-if="errors.staffId" class="text-danger text-xs">{{ errors.staffId }}</span>
+      </div>
+    </template>
+
+    <!-- Amount (Dépense and Avance; Achat stock has it beside the quantity) -->
+    <div v-if="kind !== 'STOCK'" class="flex flex-col gap-1.5">
+      <label :class="[label, errors.price ? 'text-danger' : 'text-black/50']">Montant</label>
       <div class="relative">
-        <input type="text" id="price" class="h-12 pl-3 pr-14 w-full border rounded-lg outline-none tabular-nums
-            focus:border-main focus:ring-[3px] focus:ring-main/[.15]"
-          :class="errors.price ? 'border-danger' : 'border-border'" placeholder="200"
-          v-model="charge.price" @input="errors.price = ''" />
+        <input v-model="form.price" type="text" inputmode="decimal" :class="[input, 'pr-14 tabular-nums', errors.price ? 'border-danger' : 'border-border']" placeholder="50">
         <span class="absolute top-1/2 right-3 -translate-y-1/2 text-black/45 text-sm">DH</span>
       </div>
-      <span v-if="errors.price" class="text-danger text-xs">
-        {{ errors.price }}
+      <span v-if="errors.price" class="text-danger text-xs">{{ errors.price }}</span>
+    </div>
+
+    <div class="flex flex-col gap-1.5">
+      <label :class="[label, 'text-black/50']">Payé par</label>
+      <div class="grid grid-cols-2 gap-2">
+        <Choice block :selected="form.paidFrom === 'CAISSE'" @click="form.paidFrom = 'CAISSE'">La caisse</Choice>
+        <Choice block :selected="form.paidFrom === 'PATRON'" @click="form.paidFrom = 'PATRON'">Le patron</Choice>
+      </div>
+      <span class="text-xs text-black/50">
+        {{ form.paidFrom === 'CAISSE' ? 'Déduit de la caisse du jour.' : "N'entre pas dans le calcul de la caisse." }}
       </span>
     </div>
 
-    <div class="sm:col-span-2 flex justify-end pt-2 border-t border-border">
+    <p v-if="formError" class="text-danger text-sm">{{ formError }}</p>
+
+    <div class="flex justify-end pt-2 border-t border-border">
       <AppButton type="submit" variant="primary" size="lg" :loading="loading">Sauvegarder</AppButton>
     </div>
   </form>
