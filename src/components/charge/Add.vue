@@ -5,7 +5,8 @@
  *    paid. The quantity goes into stock and the price becomes the article's.
  *  - Dépense: a running cost (gaz, transport, nettoyage…).
  *  - Avance: money advanced to someone on the staff list.
- * Each says who paid, so the day's cash count only takes off what left the till.
+ * The till only records what it paid out itself; charges the owner paid are
+ * entered from the back office.
  */
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import axios from 'axios'
@@ -64,7 +65,6 @@ const form = reactive({
   staffId: null,
   // All
   price: '',
-  paidFrom: 'CAISSE',
 })
 
 onMounted(async () => {
@@ -149,7 +149,7 @@ const validate = () => {
 }
 
 const body = () => {
-  const common = { kind: kind.value, date: new Date(), price: parseAmount(form.price), paidFrom: form.paidFrom }
+  const common = { kind: kind.value, date: new Date(), price: parseAmount(form.price), paidFrom: 'CAISSE' }
   if (kind.value === 'DEPENSE') {
     return { ...common, category: form.category, ...(form.note.trim() && { product: form.note.trim() }) }
   }
@@ -334,17 +334,6 @@ const input = 'h-12 px-3 w-full border rounded-lg outline-none bg-white focus:bo
         <span class="absolute top-1/2 right-3 -translate-y-1/2 text-black/45 text-sm">DH</span>
       </div>
       <span v-if="errors.price" class="text-danger text-xs">{{ errors.price }}</span>
-    </div>
-
-    <div class="flex flex-col gap-1.5">
-      <label :class="[label, 'text-black/50']">Payé par</label>
-      <div class="grid grid-cols-2 gap-2">
-        <Choice block :selected="form.paidFrom === 'CAISSE'" @click="form.paidFrom = 'CAISSE'">La caisse</Choice>
-        <Choice block :selected="form.paidFrom === 'PATRON'" @click="form.paidFrom = 'PATRON'">Le patron</Choice>
-      </div>
-      <span class="text-xs text-black/50">
-        {{ form.paidFrom === 'CAISSE' ? 'Déduit de la caisse du jour.' : "N'entre pas dans le calcul de la caisse." }}
-      </span>
     </div>
 
     <p v-if="formError" class="text-danger text-sm">{{ formError }}</p>
