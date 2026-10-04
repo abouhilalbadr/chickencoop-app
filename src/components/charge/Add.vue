@@ -3,6 +3,8 @@
  * A charge paid at the till, in three kinds, one tab each:
  *  - Achat stock: an article from the stock list, its quantity and what was
  *    paid. The quantity goes into stock and the price becomes the article's.
+ *    An article bought by the pack (cheddar: paquet de 24) is typed in packs;
+ *    the API turns them into units.
  *  - Dépense: a running cost (gaz, transport, nettoyage…).
  *  - Avance: money advanced to someone on the staff list.
  * The till only records what it paid out itself; charges the owner paid are
@@ -40,6 +42,10 @@ const CATEGORIES = [
   { value: 'LEG', label: 'Légumes' }, { value: 'FRU', label: 'Fruits' },
 ]
 const UNITS = { Kg: 'kg', l: 'l', P: 'pièce' }
+// French plural from 2 on: paquet → paquets, plateau → plateaux; kg and l stay
+const plural = (word, n) =>
+  Math.abs(Number(n)) >= 2 && word && !/[sxz]$/.test(word) ? word + (/(au|eu)$/.test(word) ? 'x' : 's') : word
+const unitText = (type, n) => (type === 'P' ? plural('pièce', n) : UNITS[type] || '')
 
 const kind = ref('STOCK')
 const stocks = ref([])
@@ -119,17 +125,39 @@ const pick = (stock) => {
 
 const unit = computed(() => UNITS[form.isNew ? form.newType : form.stock?.type] || '')
 
+// « paquet de 24 pièces », for an article bought by the pack
+const packText = (s) => (s?.packSize ? `${s.packLabel || 'paquet'} de ${fmtQty(s.packSize)} ${unitText(s.type, s.packSize)}` : '')
+const pack = computed(() => (!form.isNew && form.stock?.packSize ? form.stock : null))
+const byPack = ref(false)
+watch(() => form.stock, (stock) => { byPack.value = !!stock?.packSize })
+const inPacks = computed(() => byPack.value && !!pack.value)
+const typed = computed(() => parseAmount(form.size))
+// What goes into stock, in the article's unit
+const units = computed(() => (inPacks.value ? typed.value * pack.value.packSize : typed.value))
+const sizeSuffix = computed(() => (inPacks.value ? plural(pack.value.packLabel, typed.value || 2) : unit.value))
+
+// Switching keeps the same goods: 2 paquets ⇄ 48 pièces
+const setByPack = (value) => {
+  if (value === byPack.value) return
+  if (typed.value > 0) {
+    const converted = value ? typed.value / pack.value.packSize : typed.value * pack.value.packSize
+    form.size = String(Math.round(converted * 1000) / 1000).replace('.', ',')
+  }
+  byPack.value = value
+}
+
 const perUnit = computed(() => {
-  const size = parseAmount(form.size)
   const price = parseAmount(form.price)
-  if (kind.value !== 'STOCK' || !(size > 0) || !(price > 0)) return ''
-  return `${fmt(price / size)} DH / ${unit.value || 'unité'}`
+  if (kind.value !== 'STOCK' || !(units.value > 0) || !(price > 0)) return ''
+  return `${fmt(price / units.value)} DH / ${unit.value || 'unité'}`
 })
 
 const stockAfter = computed(() => {
-  const size = parseAmount(form.size)
-  if (!form.stock || form.isNew || !(size > 0)) return ''
-  return `Stock ${fmtQty(form.stock.quantity)} → ${fmtQty(form.stock.quantity + size)} ${unit.value}`
+  if (!form.stock || form.isNew || !(units.value > 0)) return ''
+  const type = form.stock.type
+  const total = form.stock.quantity + units.value
+  const after = `Stock ${fmtQty(form.stock.quantity)} → ${fmtQty(total)} ${unitText(type, total)}`
+  return inPacks.value ? `= ${fmtQty(units.value)} ${unitText(type, units.value)} · ${after}` : after
 })
 
 const validate = () => {
@@ -157,7 +185,7 @@ const body = () => {
   return {
     ...common,
     supplier: form.supplier,
-    size: parseAmount(form.size),
+    ...(inPacks.value ? { packs: typed.value } : { size: typed.value }),
     ...(form.isNew
       ? { newStock: { name: form.newName.trim(), category: form.newCategory, type: form.newType } }
       : { stockId: form.stock.id }),
@@ -214,6 +242,7 @@ const input = 'h-12 px-3 w-full border rounded-lg outline-none bg-white focus:bo
         <div v-if="form.stock" class="h-12 px-3 border border-main rounded-lg flex items-center gap-3 bg-main/[.05]">
           <span class="font-mono text-[13px] text-black/50">{{ form.stock.ref }}</span>
           <span class="font-medium">{{ form.stock.name }}</span>
+          <span v-if="pack" class="text-xs text-black/50">{{ packText(pack) }}</span>
           <button type="button" class="ml-auto text-sm text-black/55 hover:text-main" @click="form.stock = null">Changer</button>
         </div>
         <div v-else class="relative">
@@ -228,7 +257,7 @@ const input = 'h-12 px-3 w-full border rounded-lg outline-none bg-white focus:bo
             >
               <span class="font-mono text-[13px] text-black/50 w-[64px]">{{ s.ref }}</span>
               <span class="font-medium">{{ s.name }}</span>
-              <span class="ml-auto text-xs text-black/45">{{ UNITS[s.type] }}</span>
+              <span class="ml-auto text-xs text-black/45">{{ packText(s) || UNITS[s.type] }}</span>
             </button>
           </div>
           <p v-else-if="form.search.trim().length > 1" class="text-[13px] text-black/55 mt-1.5">Aucun article trouvé.</p>
@@ -275,12 +304,20 @@ const input = 'h-12 px-3 w-full border rounded-lg outline-none bg-white focus:bo
         <span v-if="errors.supplier" class="text-danger text-xs">{{ errors.supplier }}</span>
       </div>
 
+      <div v-if="pack" class="flex flex-col gap-1.5">
+        <label :class="[label, 'text-black/50']">Quantité en</label>
+        <div class="grid grid-cols-2 gap-2">
+          <Choice size="md" block :selected="byPack" @click="setByPack(true)">{{ plural(pack.packLabel, 2) }} ({{ packText(pack) }})</Choice>
+          <Choice size="md" block :selected="!byPack" @click="setByPack(false)">{{ unitText(pack.type, 2) }}</Choice>
+        </div>
+      </div>
+
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div class="flex flex-col gap-1.5">
           <label :class="[label, errors.size ? 'text-danger' : 'text-black/50']">Quantité</label>
           <div class="relative">
-            <input v-model="form.size" type="text" inputmode="decimal" :class="[input, 'pr-20 tabular-nums', errors.size ? 'border-danger' : 'border-border']" placeholder="12,5">
-            <span class="absolute top-1/2 right-1.5 -translate-y-1/2 px-3 h-9 rounded-md bg-gray-light text-black/65 text-sm flex items-center">{{ unit || '—' }}</span>
+            <input v-model="form.size" type="text" inputmode="decimal" :class="[input, 'pr-24 tabular-nums', errors.size ? 'border-danger' : 'border-border']" :placeholder="inPacks ? '2' : '12,5'">
+            <span class="absolute top-1/2 right-1.5 -translate-y-1/2 px-3 h-9 rounded-md bg-gray-light text-black/65 text-sm flex items-center">{{ sizeSuffix || '—' }}</span>
           </div>
           <span v-if="errors.size" class="text-danger text-xs">{{ errors.size }}</span>
           <span v-else-if="stockAfter" class="text-xs text-black/50">{{ stockAfter }}</span>
