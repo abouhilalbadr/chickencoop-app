@@ -18,24 +18,22 @@ const emit = defineEmits(['tacosClose', 'changeStep', 'sendData'])
 
 const make = reactive(JSON.parse(props.settings[0].make || ''))
 
+// The sizes, in the order and with the names the admin gives them in the
+// settings. A size without a price is not on sale. Sizes saved before the
+// admin could name them fall back to the names they always had.
+const LEGACY_LABELS = {
+  m: 'M', l: 'L', xl: 'XL', xxl: 'XXL', xxxl: 'XXXL',
+  gourmet: 'Gourmet', diavolo: 'Le Diavolo', gold: 'Le Gold', fromy: 'Le 4 Fromy',
+}
+const SIZES = Object.keys(make)
+  .filter((key) => parseInt(make[key]?.price) > 0)
+  .map((key) => ({ value: key, label: make[key].label || LEGACY_LABELS[key] || key.toUpperCase() }))
+const firstSize = SIZES[0]?.value || 'm'
+
 const plusPrice = ref(0)
-const size = ref('m')
+const size = ref(firstSize)
 const order = ref({})
 const note = ref('')
-
-// The sizes, as the settings name them. Everything past XXXL is a recipe with
-// its own price, which is why they sit in the same row.
-const SIZES = [
-  { value: 'm', label: 'M' },
-  { value: 'l', label: 'L' },
-  { value: 'xl', label: 'XL' },
-  { value: 'xxl', label: 'XXL' },
-  { value: 'xxxl', label: 'XXXL' },
-  { value: 'gourmet', label: 'Gourmet' },
-  { value: 'diavolo', label: 'Le Diavolo' },
-  { value: 'gold', label: 'Le Gold' },
-  { value: 'fromy', label: 'Le 4 Fromy' },
-]
 
 const addSize = (s) => {
   size.value = s
@@ -74,7 +72,7 @@ const STEPS = [
 const closeTacosModal = () => {
   emit('tacosClose')
   emit('changeStep', 'reset')
-  size.value = 'm'
+  size.value = firstSize
   plusPrice.value = 0
 }
 
@@ -88,10 +86,9 @@ const prevStep = () => {
 
 const addSauces = ({ sauces, price, operation }) => {
   order.value.sauces = sauces
-  const make = JSON.parse(props.settings[0]?.make)
-  if (operation === 'plus' && sauces.length > parseInt(make[size.value].sauces))
+  if (operation === 'plus' && sauces.length > freeSauces.value)
     plusPrice.value += parseInt(price)
-  if (operation === 'minus' && sauces.length >= parseInt(make[size.value].sauces))
+  if (operation === 'minus' && sauces.length >= freeSauces.value)
     plusPrice.value -= parseInt(price)
 }
 const addExtras = ({ extras, price, operation }) => {
@@ -109,13 +106,13 @@ const saveData = () => {
   order.value.size = size.value
   order.value.name = "Tacos Composer"
   order.value.image = store.baseUrl + "/public/tacos-composez.jpg"
-  order.value.price = (store.glovo ? parseInt(make[size.value].priceGlovo) : parseInt(make[size.value].price)) + plusPrice.value
+  order.value.price = basePrice.value + plusPrice.value
   order.value.productId = 0
   order.value.mode = 'make-tacos'
   order.value.note = note.value.trim()
   emit('sendData', order.value)
   emit('tacosClose')
-  size.value = 'm'
+  size.value = firstSize
   plusPrice.value = 0
   note.value = ''
   order.value = {}
@@ -236,7 +233,7 @@ const saveData = () => {
                 </div>
                 <div class="flex flex-col gap-2.5">
                   <span class="text-[11px] font-bold uppercase tracking-[.07em] text-black/50">Les viandes</span>
-                  <viande :max="make[size].size" :settings="settings" @save-viandes="addViandes" />
+                  <viande :max="make[size]?.size" :settings="settings" @save-viandes="addViandes" />
                 </div>
               </div>
             </template>
