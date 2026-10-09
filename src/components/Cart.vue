@@ -141,6 +141,8 @@ const sendOrder = async (e) => {
       productId: item.productId,
       // Only menu lines carry it; the reports use it to tell them from products
       ...(item.menuId ? { menuId: item.menuId } : {}),
+      // Only built tacos carry it; the kitchen board prints it next to the name
+      ...(item.size ? { size: item.size } : {}),
       sauces: item.sauces || [],
       viandes: item.viandes || [],
       extras: item.extras || [],
