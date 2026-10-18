@@ -24,12 +24,18 @@ export const useStore = defineStore('main', {
       unique: 0,
       glovo: false,
       preorders: [],
-      preOrderType: 'SUR_PLACE'
+      preOrderType: 'SUR_PLACE',
+      // The website pre-order loaded into the cart, sent with the order so
+      // the customer's tracking page and WhatsApp messages follow it
+      preorderId: null
     }
   },
   actions: {
     setPreOrderType(type) {
       this.preOrderType = type
+    },
+    setPreorderId(id) {
+      this.preorderId = id
     },
     setUnique() {
       this.unique += 1
@@ -73,6 +79,10 @@ export const useStore = defineStore('main', {
       this.socket.on("connect", () => {
         this.connected = true;
       });
+      // Reconnecting is when the till catches up on what it missed (Caisse.vue)
+      this.socket.on("disconnect", () => {
+        this.connected = false;
+      });
 
       this.socket.on("order:created", (order) => {
         this.prints.push(JSON.parse(order))
@@ -103,6 +113,12 @@ export const useStore = defineStore('main', {
           }, 5000);
         }
       })
+      this.socket.on('order:dispatched', (order) => {
+        this.markDispatched(order)
+      })
+      this.socket.on('order:handedOver', (order) => {
+        this.markHandedOver(order)
+      })
       this.socket.on('preorder:create', (preorder) => {
         this.setPreorder(preorder)
         this.alert.show = true
@@ -120,8 +136,16 @@ export const useStore = defineStore('main', {
     setNotifications(data) {
       this.notifications = data
     },
-    removeNotification(i) {
-      this.notifications.splice(i, 1);
+    // Every till screen shows the delivery as gone once one of them taps it
+    markDispatched(order) {
+      const shown = this.notifications.find(item => item.id === order.id)
+      if (shown) shown.dispatchedAt = order.dispatchedAt
+    },
+    // Picked up or delivered: gone from every till screen. Spliced rather than
+    // filtered, the ready board keeps a reference to this array
+    markHandedOver(order) {
+      const i = this.notifications.findIndex(item => item.id === order.id)
+      if (i !== -1) this.notifications.splice(i, 1)
     },
     setPrints(data) {
       this.prints = data

@@ -11,6 +11,7 @@ import Money from './Money.vue'
 import Percentage from './Percentage.vue'
 import NumberModal from './NumberModal.vue'
 import PrintItem from "./PrintItem.vue";
+import { showTrackingQr } from "../ticketQr";
 import Amount from './ui/Money.vue'
 import AppButton from './ui/AppButton.vue'
 import Choice from './ui/Choice.vue'
@@ -156,6 +157,7 @@ const sendOrder = async (e) => {
     total: parseFloat((subTotal.value + (livraison.value === -1 ? 0 : livraison.value)) - percentTotal.value),
     number: e,
     invoice: type.value === 'GLOVO' ? payType.value : freeUser.value,
+    ...(props.page === 'caisse' && store.preorderId ? { preorderId: store.preorderId } : {}),
   }
   loading.value = true
   if (props.page === 'tablet') {
@@ -184,6 +186,8 @@ const sendOrder = async (e) => {
       emit('cartDel', 'clear')
       loading.value = false
       if (props.page === 'caisse') {
+        // Counter orders only: the API sends no token for delivery and Glovo
+        if (data.track) showTrackingQr(data.track)
         window.print()
         window.onafterprint = () => {
           Swal.fire({
