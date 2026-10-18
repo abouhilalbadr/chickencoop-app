@@ -3,11 +3,15 @@ import { ref } from "vue"
 import Swal from 'sweetalert2'
 
 import PrintItem from "./PrintItem.vue";
+import { showTrackingQr } from "../ticketQr";
 
 import { useStore } from "../store"
 
 const props = defineProps(['prints'])
 const toPrint = ref(null)
+// Re-creates the receipt for every print, so the QR code written into it
+// (ticketQr.js) never carries over to the next ticket
+const printKey = ref(0)
 const loadingPrint = ref(false)
 
 const store = useStore()
@@ -27,7 +31,9 @@ const filterDuplicates = (arr) => {
 const setToPrint = (item, i) => {
   loadingPrint.value = true
   toPrint.value = item
+  printKey.value++
   setTimeout(() => {
+    if (item.track) showTrackingQr(item.track)
     window.print()
     window.onafterprint = () => {
       Swal.fire({
@@ -89,7 +95,7 @@ const setToPrint = (item, i) => {
       </button>
     </div>
 
-    <div v-if="toPrint" id="printArea" class="hidden">
+    <div v-if="toPrint" :key="printKey" id="printArea" class="hidden">
       <print-item :cart="toPrint.cart" :subTotal="toPrint.subTotal" :showPromo="toPrint.showPromo"
         :percent="toPrint.percent" :percentTotal="toPrint.percentTotal" :pay="toPrint.pay" :bipeur="toPrint.bipeur"
         :type="toPrint.type" :livraison="toPrint.livraison" :payType="toPrint.payType" />

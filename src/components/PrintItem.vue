@@ -136,7 +136,11 @@
     </div>
     <div class="flex flex-col gap-4 justify-center items-center text-center">
       <p class="text-3xl">Merci de votre visite</p>
-      <img class="h-32" src="../assets/images/qrcode.png" alt="Chicken Coop QR" />
+      <!-- Swapped for the order's tracking QR when there is one (see ticketQr.js) -->
+      <div data-ticket-qr>
+        <img class="h-32" src="../assets/images/qrcode.png" alt="Chicken Coop QR" />
+      </div>
+      <p data-ticket-qr-caption class="text-lg empty:hidden"></p>
     </div>
   </div>
 </template>
