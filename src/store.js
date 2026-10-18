@@ -116,6 +116,9 @@ export const useStore = defineStore('main', {
       this.socket.on('order:dispatched', (order) => {
         this.markDispatched(order)
       })
+      this.socket.on('order:handedOver', (order) => {
+        this.markHandedOver(order)
+      })
       this.socket.on('preorder:create', (preorder) => {
         this.setPreorder(preorder)
         this.alert.show = true
@@ -138,8 +141,11 @@ export const useStore = defineStore('main', {
       const shown = this.notifications.find(item => item.id === order.id)
       if (shown) shown.dispatchedAt = order.dispatchedAt
     },
-    removeNotification(i) {
-      this.notifications.splice(i, 1);
+    // Picked up or delivered: gone from every till screen. Spliced rather than
+    // filtered, the ready board keeps a reference to this array
+    markHandedOver(order) {
+      const i = this.notifications.findIndex(item => item.id === order.id)
+      if (i !== -1) this.notifications.splice(i, 1)
     },
     setPrints(data) {
       this.prints = data

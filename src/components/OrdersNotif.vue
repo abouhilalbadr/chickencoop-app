@@ -6,7 +6,6 @@ import Swal from 'sweetalert2'
 import { useStore } from "../store"
 
 import Notifications from './icons/Notifications.vue';
-import Delete from './icons/Delete.vue';
 import AppButton from './ui/AppButton.vue';
 
 const store = useStore()
@@ -35,16 +34,23 @@ const getAllNotifications = async () => {
 
 // A finished delivery waits at the counter until its rider takes it. The tap
 // is what turns the customer's tracking page to "En route".
-const dispatching = ref(null)
-const dispatch = async (item) => {
-  dispatching.value = item.id
+const busy = ref(null)
+const dispatch = (item) => send('dispatch', item, (order) => store.markDispatched(order))
+
+// The food left the counter: picked up by the customer (or the Glovo rider),
+// or delivered by our rider. The number leaves the room screen and the
+// customer's page shows its last step.
+const handOver = (item) => send('handover', item, (order) => store.markHandedOver(order))
+
+const send = async (action, item, done) => {
+  busy.value = item.id
   try {
-    const { data } = await axios.put(`/orders/dispatch/${item.id}`, {}, {
+    const { data } = await axios.put(`/orders/${action}/${item.id}`, {}, {
       headers: {
         'Authorization': `Bearer ${store.user.accessToken}`
       }
     })
-    if (data?.data) store.markDispatched(data.data)
+    if (data?.data) done(data.data)
   } catch (error) {
     Swal.fire({
       position: 'top-end',
@@ -54,7 +60,7 @@ const dispatch = async (item) => {
       timer: 2000
     })
   } finally {
-    dispatching.value = null
+    busy.value = null
   }
 }
 </script>
@@ -86,8 +92,8 @@ const dispatch = async (item) => {
     <div class="max-h-64 overflow-y-auto p-3 flex flex-col gap-2">
       <p v-if="allNot.length === 0" class="text-black/45 text-center py-8">Pas de notifications</p>
       <div
-        v-for="(item, i) in allNot"
-        :key="i"
+        v-for="item in allNot"
+        :key="item.id"
         class="rounded-lg border border-second/30 bg-second/[.08] px-3 py-2.5 flex items-center gap-3"
       >
         <svg class="fill-second shrink-0" width="20" height="20" viewBox="0 0 21 21" xmlns="http://www.w3.org/2000/svg">
@@ -97,28 +103,26 @@ const dispatch = async (item) => {
           La commande <span class="font-bree-serif text-lg">N° {{ item.number }}</span> est prête
           <span v-if="item.type === 'LIVRAISON'" class="text-black/55">· livraison</span>
         </span>
-        <!-- An undelivered delivery cannot be dismissed: until "Livreur parti",
-             its customer's page says it is waiting for the rider -->
+        <!-- A delivery is waiting for its rider until "Livreur parti", then
+             on its way until "Livrée" -->
         <AppButton
           v-if="item.type === 'LIVRAISON' && !item.dispatchedAt"
           variant="success"
           class="ml-auto shrink-0"
-          :loading="dispatching === item.id"
+          :loading="busy === item.id"
           @click="dispatch(item)"
         >
           Livreur parti
         </AppButton>
-        <template v-else>
-          <span v-if="item.type === 'LIVRAISON'" class="ml-auto text-[13px] font-medium text-second shrink-0">Partie ✓</span>
-          <button
-            class="w-9 h-9 rounded-lg flex items-center justify-center text-black/35 transition-colors hover:bg-danger hover:text-white"
-            :class="item.type === 'LIVRAISON' ? '' : 'ml-auto'"
-            title="Retirer"
-            @click="store.removeNotification(i)"
-          >
-            <delete />
-          </button>
+        <template v-else-if="item.type === 'LIVRAISON'">
+          <span class="ml-auto text-[13px] font-medium text-second shrink-0">Partie ✓</span>
+          <AppButton class="shrink-0" :loading="busy === item.id" @click="handOver(item)">
+            Livrée
+          </AppButton>
         </template>
+        <AppButton v-else class="ml-auto shrink-0" :loading="busy === item.id" @click="handOver(item)">
+          Récupérée
+        </AppButton>
       </div>
     </div>
   </section>
