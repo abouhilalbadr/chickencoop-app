@@ -113,6 +113,9 @@ export const useStore = defineStore('main', {
           }, 5000);
         }
       })
+      this.socket.on('order:dispatched', (order) => {
+        this.markDispatched(order)
+      })
       this.socket.on('preorder:create', (preorder) => {
         this.setPreorder(preorder)
         this.alert.show = true
@@ -129,6 +132,11 @@ export const useStore = defineStore('main', {
     },
     setNotifications(data) {
       this.notifications = data
+    },
+    // Every till screen shows the delivery as gone once one of them taps it
+    markDispatched(order) {
+      const shown = this.notifications.find(item => item.id === order.id)
+      if (shown) shown.dispatchedAt = order.dispatchedAt
     },
     removeNotification(i) {
       this.notifications.splice(i, 1);

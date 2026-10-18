@@ -1,11 +1,13 @@
 <script setup>
 import { ref } from "vue"
 import axios from 'axios'
+import Swal from 'sweetalert2'
 
 import { useStore } from "../store"
 
 import Notifications from './icons/Notifications.vue';
 import Delete from './icons/Delete.vue';
+import AppButton from './ui/AppButton.vue';
 
 const store = useStore()
 
@@ -28,6 +30,31 @@ const getAllNotifications = async () => {
     console.log(error);
   } finally {
     loading.value = false
+  }
+}
+
+// A finished delivery waits at the counter until its rider takes it. The tap
+// is what turns the customer's tracking page to "En route".
+const dispatching = ref(null)
+const dispatch = async (item) => {
+  dispatching.value = item.id
+  try {
+    const { data } = await axios.put(`/orders/dispatch/${item.id}`, {}, {
+      headers: {
+        'Authorization': `Bearer ${store.user.accessToken}`
+      }
+    })
+    if (data?.data) store.markDispatched(data.data)
+  } catch (error) {
+    Swal.fire({
+      position: 'top-end',
+      icon: 'error',
+      title: error?.response?.data?.message || 'Impossible pour le moment. Veuillez réessayer',
+      showConfirmButton: false,
+      timer: 2000
+    })
+  } finally {
+    dispatching.value = null
   }
 }
 </script>
@@ -68,14 +95,30 @@ const getAllNotifications = async () => {
         </svg>
         <span>
           La commande <span class="font-bree-serif text-lg">N° {{ item.number }}</span> est prête
+          <span v-if="item.type === 'LIVRAISON'" class="text-black/55">· livraison</span>
         </span>
-        <button
-          class="ml-auto w-9 h-9 rounded-lg flex items-center justify-center text-black/35 transition-colors hover:bg-danger hover:text-white"
-          title="Retirer"
-          @click="store.removeNotification(i)"
+        <!-- An undelivered delivery cannot be dismissed: until "Livreur parti",
+             its customer's page says it is waiting for the rider -->
+        <AppButton
+          v-if="item.type === 'LIVRAISON' && !item.dispatchedAt"
+          variant="success"
+          class="ml-auto shrink-0"
+          :loading="dispatching === item.id"
+          @click="dispatch(item)"
         >
-          <delete />
-        </button>
+          Livreur parti
+        </AppButton>
+        <template v-else>
+          <span v-if="item.type === 'LIVRAISON'" class="ml-auto text-[13px] font-medium text-second shrink-0">Partie ✓</span>
+          <button
+            class="w-9 h-9 rounded-lg flex items-center justify-center text-black/35 transition-colors hover:bg-danger hover:text-white"
+            :class="item.type === 'LIVRAISON' ? '' : 'ml-auto'"
+            title="Retirer"
+            @click="store.removeNotification(i)"
+          >
+            <delete />
+          </button>
+        </template>
       </div>
     </div>
   </section>
