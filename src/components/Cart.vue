@@ -157,6 +157,7 @@ const sendOrder = async (e) => {
     total: parseFloat((subTotal.value + (livraison.value === -1 ? 0 : livraison.value)) - percentTotal.value),
     number: e,
     invoice: type.value === 'GLOVO' ? payType.value : freeUser.value,
+    ...(props.page === 'caisse' && store.preorderId ? { preorderId: store.preorderId } : {}),
   }
   loading.value = true
   if (props.page === 'tablet') {

@@ -106,6 +106,8 @@ const delFromCart = (i) => {
     cart.value = []
   else
     cart.value.splice(i, 1);
+  // An emptied cart no longer holds the pre-order it was loaded from
+  if (cart.value.length === 0) store.setPreorderId(null)
 }
 const getCategories = async () => {
   try {
@@ -200,6 +202,7 @@ const addProductsToCart = async (order) => {
     })
     if (data?.data) {
       store.setPreOrderType(order.type)
+      store.setPreorderId(order.id)
       store.removePreorder(order.id)
       if (typeof order.products === 'object') {
         cart.value.push(...order.products)

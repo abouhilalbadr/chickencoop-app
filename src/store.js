@@ -24,12 +24,18 @@ export const useStore = defineStore('main', {
       unique: 0,
       glovo: false,
       preorders: [],
-      preOrderType: 'SUR_PLACE'
+      preOrderType: 'SUR_PLACE',
+      // The website pre-order loaded into the cart, sent with the order so
+      // the customer's tracking page and WhatsApp messages follow it
+      preorderId: null
     }
   },
   actions: {
     setPreOrderType(type) {
       this.preOrderType = type
+    },
+    setPreorderId(id) {
+      this.preorderId = id
     },
     setUnique() {
       this.unique += 1
