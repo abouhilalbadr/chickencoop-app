@@ -79,6 +79,10 @@ export const useStore = defineStore('main', {
       this.socket.on("connect", () => {
         this.connected = true;
       });
+      // Reconnecting is when the till catches up on what it missed (Caisse.vue)
+      this.socket.on("disconnect", () => {
+        this.connected = false;
+      });
 
       this.socket.on("order:created", (order) => {
         this.prints.push(JSON.parse(order))

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, reactive, onMounted } from "vue"
+import { ref, computed, reactive, onMounted, watch } from "vue"
 import axios from 'axios'
 
 import { useStore } from "../store"
@@ -16,6 +16,7 @@ import OrdersNotif from "../components/OrdersNotif.vue"
 import OrdersPrints from "../components/OrdersPrints.vue"
 import Menu from "../components/icons/food/Menu.vue";
 import PreOrder from "../components/PreOrder.vue";
+import PreorderPopup from "../components/PreorderPopup.vue";
 import CategoryTile from "../components/ui/CategoryTile.vue";
 
 const store = useStore()
@@ -234,9 +235,9 @@ const getPreorders = async () => {
         'Authorization': `Bearer ${store.user.accessToken}`
       }
     })
-    if (data?.data.length > 0) {
-      store.setPreorders(data.data)
-    }
+    // Always replaced, even when empty: after a reconnect the list must also
+    // drop the pre-orders handled or deleted meanwhile
+    store.setPreorders(data?.data || [])
   } catch (error) {
     console.log(error);
   }
@@ -249,11 +250,18 @@ onMounted(() => {
   getPreorders()
 })
 
+// Website orders sent while the till was offline (Wi-Fi drop, server restart)
+// raised no alert: fetch the waiting list again on every reconnection
+watch(() => store.connected, (connected) => {
+  if (connected) getPreorders()
+})
+
 </script>
 
 <template>
   <Header page="caisse" @change-page="changePage" @add-to-cart="addItemsToCart" />
   <pre-order v-if="page === 'preorder'" @change-page="changePage" @add-to-cart="addProductsToCart" />
+  <preorder-popup v-if="page !== 'preorder'" :cart-busy="cart.length > 0" @accept="addProductsToCart" />
   <food-modal
     v-if="settings.length > 0"
     :currentFood="currentFood"
